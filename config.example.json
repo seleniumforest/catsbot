@@ -1,0 +1,14 @@
+{
+    "token": "1231231212:Qwertyuiopasdfghjkl;xcvbnm1234567890",
+    "channel": "@username", 
+    "networks": [
+        {
+            "name": "cosmoshub",
+            "minNotifyAmount": 1000,
+            "notifyDenom": "uatom",
+            "rpcEndpoints": [
+                "wss://rpc-cosmoshub-ia.notional.ventures/websocket"
+            ]
+        }
+    ]
+}

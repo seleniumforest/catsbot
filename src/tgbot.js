@@ -1,8 +1,23 @@
 const { Telegraf } = require("telegraf");
+const config = require("../config.json");
 
-const botToken = "5453349465:AAE2dFoZeDXiRJVFPAzOsXG_NV5Il5xX_4g";
+const botToken = config.token;
 let bot = new Telegraf(botToken);
-bot.hears('hi', (ctx) => console.log(JSON.stringify(ctx)));
 bot.launch();
 
-module.exports = { bot };
+const notifyMsgSend = (from, to, amount, txhash) => {
+    let message = `Address ${from} sent ${amount} ATOM to ${to}. ` + 
+    `<a href='https://www.mintscan.io/cosmos/txs/${txhash}'>Tx link</a>`;
+
+    console.log(message);
+
+    bot.telegram.sendMessage(
+        config.channel,
+        message,
+        {
+            parse_mode: "HTML"
+        }
+    );
+}
+
+module.exports = { notifyMsgSend };
