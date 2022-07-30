@@ -18,7 +18,11 @@ const processNewTx = (newtx) => {
         }
 
         let decodedMsg = registry.decode(msg);
-        let amountSent = fromBaseUnit(decodedMsg.amount?.find((x) => x.denom === "uatom")?.amount, 6);
+        let amountSentBase = decodedMsg.amount.find((x) => x.denom === network.notifyDenom)?.amount;
+        if (!amountSentBase) 
+            return;
+
+        let amountSent = fromBaseUnit(amountSentBase, 6);
         if (parseFloat(amountSent) < network.minNotifyAmount) {
             console.log("less than 1000 atom")
             return;
