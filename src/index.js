@@ -1,18 +1,16 @@
 const { Registry, decodeTxRaw, Coin } = require("@cosmjs/proto-signing");
-const { defaultRegistryTypes, MsgSendEncodeObject } = require("@cosmjs/stargate");
+const { defaultRegistryTypes, StargateClient } = require("@cosmjs/stargate");
 const { notifyMsgSend } = require('./tgbot');
-const { TxEvent, WebsocketClient } = require('@cosmjs/tendermint-rpc');
+const { WebsocketClient } = require('@cosmjs/tendermint-rpc');
 const { fromBaseUnit } = require("./helpers.js");
 const config = require("../config.json");
 
-const server = "wss://rpc-cosmoshub-ia.notional.ventures/";
+const endpoint = config.networks[0].rpcEndpoints[0];
 const registry = new Registry(defaultRegistryTypes);
 
-const processTx = (newtx) => {
-    let tx = newtx.data.value;
-    let txhash = newtx.events["tx.hash"][0];
-    console.log("recieved tx " + txhash);
-    let decodedTx = decodeTxRaw(Buffer.from(tx.TxResult.tx, "base64"));
+const processNewTx = (newtx) => {
+    console.log("recieved tx " + newtx.hash);
+    let decodedTx = decodeTxRaw(newtx.tx);
     let network = config.networks[0];
     for (const msg of decodedTx.body.messages) {
         if (msg.typeUrl !== "/cosmos.bank.v1beta1.MsgSend") {
@@ -30,25 +28,34 @@ const processTx = (newtx) => {
             decodedMsg.fromAddress?.toString(),
             decodedMsg.toAddress?.toString(),
             amountSent,
-            txhash);
-    }
+            newtx.hash);
+    }   
+}
+
+const processNewHeight = async (height) => {
+    console.log(`got new block ${height}`)
+    let rpcClient = await StargateClient.connect(endpoint.rpc);
+    let txs = await rpcClient.searchTx({ height: parseInt(height) });
+    txs.forEach(processNewTx);
 }
 
 (async () => {
-    const client = new WebsocketClient(server, (err) => console.log(err));
+    const wsClient = new WebsocketClient(endpoint.ws, (err) => console.log(err));
 
-    let stream = await client.listen({
+    let stream = await wsClient.listen({
         jsonrpc: "2.0",
         method: "subscribe",
         id: 0,
         params: {
-            query: "tm.event='Tx'"
+            query: "tm.event='NewBlockHeader'"
         }
     });
 
     stream.addListener({
         complete: () => console.log("complete"),
         error: (err) => console.log(err),
-        next: processTx 
+        next: (newtx) => {
+            processNewHeight(newtx?.data?.value?.header?.height);
+        }
     });
 })();
