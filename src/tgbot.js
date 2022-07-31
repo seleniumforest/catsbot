@@ -5,9 +5,9 @@ const botToken = config.token;
 let bot = new Telegraf(botToken);
 bot.launch();
 
-const notifyMsgSend = (from, to, amount, txhash) => {
-    let message = `Address ${from} sent ${amount} ATOM to ${to}. ` + 
-    `<a href='https://www.mintscan.io/cosmos/txs/${txhash}'>Tx link</a>`;
+const notifyMsgSend = (from, to, denom, amount, txhash, network) => {
+    let message = `Address ${from} sent ${amount} ${denom} to ${to}. ` + 
+    `<a href='https://www.mintscan.io/${network}/txs/${txhash}'>Tx link</a>`;
 
     console.log(message);
 

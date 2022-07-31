@@ -7,7 +7,9 @@
     "@cosmjs/proto-signing": "^0.28.11",
     "@cosmjs/stargate": "^0.28.11",
     "@cosmjs/tendermint-rpc": "^0.28.11",
+    "big": "^0.5.2",
     "big.js": "^6.2.1",
+    "bigjs": "^0.0.3",
     "telegraf": "^4.8.6",
     "ws": "^8.8.1"
   }

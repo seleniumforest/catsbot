@@ -3,13 +3,39 @@
     "channel": "@username",
     "networks": [
         {
-            "name": "cosmoshub",
-            "minNotifyAmount": 1000,
-            "notifyDenom": "uatom",
-            "rpcEndpoints": [
+            "name": "cosmos",
+            "notifyDenoms": [
+                {
+                    "denom": "uatom",
+                    "ticker": "ATOM",
+                    "amount": 100000000
+                }
+            ],
+            "endpoints": [
                 {
                     "ws": "wss://rpc-cosmoshub-ia.notional.ventures/",
-                    "rpc": "https://rpc-cosmoshub-ia.notional.ventures/"
+                    "rpc": "https://rpc-cosmoshub-ia.notional.ventures"
+                }
+            ]
+        },
+        {
+            "name": "osmosis",
+            "notifyDenoms": [
+                {
+                    "denom": "uosmo",
+                    "ticker": "OSMO",
+                    "amount": 10000000
+                },
+                {
+                    "denom": "uion",
+                    "ticker": "ION",
+                    "amount": 100000
+                }
+            ],
+            "endpoints": [
+                {
+                    "ws": "wss://rpc-osmosis.ecostake.com/",
+                    "rpc": "https://rpc-osmosis.ecostake.com"
                 }
             ]
         }

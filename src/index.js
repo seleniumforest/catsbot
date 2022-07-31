@@ -2,49 +2,54 @@ const { Registry, decodeTxRaw, Coin } = require("@cosmjs/proto-signing");
 const { defaultRegistryTypes, StargateClient } = require("@cosmjs/stargate");
 const { notifyMsgSend } = require('./tgbot');
 const { WebsocketClient } = require('@cosmjs/tendermint-rpc');
-const { fromBaseUnit } = require("./helpers.js");
+const { fromBaseUnit, toBaseUnit } = require("./helpers.js");
 const config = require("../config.json");
 
-const endpoint = config.networks[0].rpcEndpoints[0];
 const registry = new Registry(defaultRegistryTypes);
 
-const processNewTx = (newtx) => {
-    console.log("recieved tx " + newtx.hash);
+const processNewTx = (network, newtx) => {
     let decodedTx = decodeTxRaw(newtx.tx);
-    let network = config.networks[0];
     for (const msg of decodedTx.body.messages) {
         if (msg.typeUrl !== "/cosmos.bank.v1beta1.MsgSend") {
             return;
         }
 
         let decodedMsg = registry.decode(msg);
-        let amountSentBase = decodedMsg.amount.find((x) => x.denom === network.notifyDenom)?.amount;
-        if (!amountSentBase) 
-            return;
+        let transfers = decodedMsg.amount.filter((x) => network.notifyDenoms.map(d => d.denom).includes(x.denom));
+        transfers.forEach(tr => {
+            let transfferedDenom = network.notifyDenoms.find(x => x.denom === tr.denom);
+            let amountSent = fromBaseUnit(tr?.amount, 6);
+            let minNotifyAmount = fromBaseUnit(transfferedDenom?.amount);
+            if (!amountSent || !minNotifyAmount)
+                return;
 
-        let amountSent = fromBaseUnit(amountSentBase, 6);
-        if (parseFloat(amountSent) < network.minNotifyAmount) {
-            console.log("less than 1000 atom")
-            return;
-        }
+            if (parseFloat(amountSent) < minNotifyAmount) {
+                console.log(`${network.name}: less than ${toBaseUnit(transfferedDenom.amount, 6)} ${transfferedDenom.denom}`)
+                return;
+            }
 
-        notifyMsgSend(
-            decodedMsg.fromAddress?.toString(),
-            decodedMsg.toAddress?.toString(),
-            amountSent,
-            newtx.hash);
-    }   
+            notifyMsgSend(
+                decodedMsg.fromAddress?.toString(),
+                decodedMsg.toAddress?.toString(),
+                transfferedDenom.ticker,
+                amountSent,
+                newtx.hash,
+                network.name);
+        })
+    }
 }
 
-const processNewHeight = async (height) => {
-    console.log(`got new block ${height}`)
-    let rpcClient = await StargateClient.connect(endpoint.rpc);
+const processNewHeight = async (network, height) => {
+    console.log(`${network.name}: got new block ${height}`);
+    let { rpc } = network.endpoints[0];
+    let rpcClient = await StargateClient.connect(rpc);
     let txs = await rpcClient.searchTx({ height: parseInt(height) });
-    txs.forEach(processNewTx);
+    txs.forEach((tx) => processNewTx(network, tx));
 }
 
-(async () => {
-    const wsClient = new WebsocketClient(endpoint.ws, (err) => console.log(err));
+const processNetwork = async (network) => {
+    const { ws } = network.endpoints[0];
+    const wsClient = new WebsocketClient(ws, (err) => console.log(err));
 
     let stream = await wsClient.listen({
         jsonrpc: "2.0",
@@ -56,10 +61,21 @@ const processNewHeight = async (height) => {
     });
 
     stream.addListener({
-        complete: () => console.log("complete"),
-        error: (err) => console.log(err),
+        complete: () => {
+            console.log("complete");
+            wsClient.disconnect();
+        },
+        error: (err) => {
+            console.log(err);
+            wsClient.disconnect();
+        },
         next: (newtx) => {
-            processNewHeight(newtx?.data?.value?.header?.height);
+            let newHeight = newtx?.data?.value?.header?.height;
+            processNewHeight(network, newHeight);
         }
     });
+};
+
+(async () => {
+    config.networks.forEach(processNetwork);
 })();
