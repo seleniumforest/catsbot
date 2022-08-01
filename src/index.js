@@ -6,11 +6,17 @@ const log = require("./logger");
 const msgHandlers = require("./messages");
 
 const processNewTx = (network, newtx) => {
+    let isFailedTx = newtx.code !== 0;
+    if (isFailedTx)
+        return;
+
     let decodedTx = decodeTxRaw(newtx.tx);
     for (const msg of decodedTx.body.messages) {
         let msgHandler = msgHandlers[msg.typeUrl];
-        if (typeof msgHandler === "function") 
-            msgHandler(network, msg, newtx.hash);
+        if (typeof msgHandler !== "function")
+            return;
+
+        msgHandler(network, msg, newtx.hash);
     }
 }
 
