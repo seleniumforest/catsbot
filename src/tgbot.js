@@ -2,10 +2,10 @@ const { Telegraf } = require("telegraf");
 const config = require("../config.json");
 
 const isLocalEnv = config.env === "local";
+const bot = {}
 
 if (!isLocalEnv) {
-    const botToken = config.token;
-    let bot = new Telegraf(botToken);
+    bot = new Telegraf(config.token);
     bot.launch();
 }
 
