@@ -1,3 +1,5 @@
+const { Registry } = require("@cosmjs/proto-signing");
+const { defaultRegistryTypes } = require("@cosmjs/stargate");
 const big = require("big.js");
 
 const fromBaseUnit = (amount, decimals = 6) => {
@@ -22,7 +24,10 @@ const toBaseUnit = (amount, decimals = 6) => {
     return microfied;
 }
 
+const getDefaultRegistry = () => new Registry(defaultRegistryTypes);
+
 module.exports = {
     fromBaseUnit,
-    toBaseUnit
+    toBaseUnit,
+    getDefaultRegistry
 }

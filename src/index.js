@@ -1,42 +1,16 @@
-const { Registry, decodeTxRaw, Coin } = require("@cosmjs/proto-signing");
-const { defaultRegistryTypes, StargateClient } = require("@cosmjs/stargate");
-const { notifyMsgSend } = require('./tgbot');
+const { decodeTxRaw } = require("@cosmjs/proto-signing");
+const { StargateClient } = require("@cosmjs/stargate");
 const { WebsocketClient } = require('@cosmjs/tendermint-rpc');
-const { fromBaseUnit, toBaseUnit } = require("./helpers.js");
 const config = require("../config.json");
 const log = require("./logger");
-
-const registry = new Registry(defaultRegistryTypes);
+const msgHandlers = require("./messages");
 
 const processNewTx = (network, newtx) => {
     let decodedTx = decodeTxRaw(newtx.tx);
     for (const msg of decodedTx.body.messages) {
-        if (msg.typeUrl !== "/cosmos.bank.v1beta1.MsgSend") {
-            return;
-        }
-
-        let decodedMsg = registry.decode(msg);
-        let transfers = decodedMsg.amount.filter((x) => network.notifyDenoms.map(d => d.denom).includes(x.denom));
-        transfers.forEach(tr => {
-            let transfferedDenom = network.notifyDenoms.find(x => x.denom === tr.denom);
-            let amountSent = fromBaseUnit(tr?.amount, 6);
-            let minNotifyAmount = fromBaseUnit(transfferedDenom?.amount);
-            if (!amountSent || !minNotifyAmount)
-                return;
-
-            if (parseFloat(amountSent) < minNotifyAmount) {
-                console.log(`${network.name}: less than ${toBaseUnit(transfferedDenom.amount, 6)} ${transfferedDenom.denom}`)
-                return;
-            }
-
-            notifyMsgSend(
-                decodedMsg.fromAddress?.toString(),
-                decodedMsg.toAddress?.toString(),
-                transfferedDenom.ticker,
-                amountSent,
-                newtx.hash,
-                network.name);
-        })
+        let msgHandler = msgHandlers[msg.typeUrl];
+        if (typeof msgHandler === "function") 
+            msgHandler(network, msg, newtx.hash);
     }
 }
 
