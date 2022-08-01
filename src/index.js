@@ -4,6 +4,7 @@ const { notifyMsgSend } = require('./tgbot');
 const { WebsocketClient } = require('@cosmjs/tendermint-rpc');
 const { fromBaseUnit, toBaseUnit } = require("./helpers.js");
 const config = require("../config.json");
+const log = require("./logger");
 
 const registry = new Registry(defaultRegistryTypes);
 
@@ -42,8 +43,16 @@ const processNewTx = (network, newtx) => {
 const processNewHeight = async (network, height) => {
     console.log(`${network.name}: got new block ${height}`);
     let { rpc } = network.endpoints[0];
-    let rpcClient = await StargateClient.connect(rpc);
-    let txs = await rpcClient.searchTx({ height: parseInt(height) });
+    let txs = [];
+
+    try {
+        let rpcClient = await StargateClient.connect(rpc);
+        txs = await rpcClient.searchTx({ height: parseInt(height) });
+    }
+    catch (err) {
+        log.error(JSON.stringify(err));
+    }
+
     txs.forEach((tx) => processNewTx(network, tx));
 }
 
@@ -62,11 +71,11 @@ const processNetwork = async (network) => {
 
     stream.addListener({
         complete: () => {
-            console.log("complete");
+            log.warn("complete");
             wsClient.disconnect();
         },
         error: (err) => {
-            console.log(err);
+            log.error(JSON.stringify(err));
             wsClient.disconnect();
         },
         next: (newtx) => {
@@ -77,5 +86,7 @@ const processNetwork = async (network) => {
 };
 
 (async () => {
+    log.info("Start with config");
+    log.info(JSON.stringify(config));
     config.networks.forEach(processNetwork);
 })();
