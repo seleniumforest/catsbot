@@ -38,6 +38,22 @@
                     "rpc": "https://rpc-osmosis.ecostake.com"
                 }
             ]
+        },
+        {
+            "name": "juno",
+            "notifyDenoms": [
+                {
+                    "denom": "ujuno",
+                    "ticker": "JUNO",
+                    "amount": 1000000
+                }
+            ],
+            "endpoints": [
+                {
+                    "ws": "wss://rpc-juno-ia.notional.ventures/",
+                    "rpc": "https://rpc-juno-ia.notional.ventures/"
+                }
+            ]
         }
     ]
 }
