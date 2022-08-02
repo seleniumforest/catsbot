@@ -65,8 +65,14 @@ const processNetwork = async (network) => {
     });
 };
 
-(async () => {
+(async (network) => {
     log.info("Start with config");
     log.info(JSON.stringify(config));
-    config.networks.forEach(processNetwork);
-})();
+    log.info(network);
+    
+    let networks = config.networks;
+    if (network)
+        networks = networks.filter(x => x.name === network);
+
+    networks.forEach(processNetwork);
+})(process.argv[2]);

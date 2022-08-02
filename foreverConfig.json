@@ -1,0 +1,38 @@
+[
+    {
+        "uid": "cosmos",
+        "append": true,
+        "script": "src/index.js",
+        "sourceDir": "./",
+        "args": [
+            "cosmos"
+        ]
+    },
+    {
+        "uid": "osmosis",
+        "append": true,
+        "script": "src/index.js",
+        "sourceDir": "./",
+        "args": [
+            "osmosis"
+        ]
+    },
+    {
+        "uid": "juno",
+        "append": true,
+        "script": "src/index.js",
+        "sourceDir": "./",
+        "args": [
+            "juno"
+        ]
+    },
+    {
+        "uid": "evmos",
+        "append": true,
+        "script": "src/index.js",
+        "sourceDir": "./",
+        "args": [
+            "evmos"
+        ]
+    }
+]
