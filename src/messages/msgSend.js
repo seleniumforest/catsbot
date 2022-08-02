@@ -10,7 +10,7 @@ const handleMsgSend = (network, msg, txhash) => {
         if (!tr?.amount || !transfferedDenomConfig?.amount)
             return;
 
-        //tr?.amount < transfferedDenomConfig?.amount
+        //tr?.amount < transfferedDenomConfig?.amount using bigjs lib
         if (new Big(tr?.amount).lt(new Big(transfferedDenomConfig?.amount))) {
             console.log(`${network.name}: transfer less than ${transfferedDenomConfig.amount} ${transfferedDenomConfig.denom}`)
             return;
