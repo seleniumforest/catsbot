@@ -23,16 +23,8 @@ const processNewTx = (network, newtx) => {
 const processNewHeight = async (network, height) => {
     console.log(`${network.name}: got new block ${height}`);
     let { rpc } = network.endpoints[0];
-    let txs = [];
-
-    try {
-        let rpcClient = await StargateClient.connect(rpc);
-        txs = await rpcClient.searchTx({ height: parseInt(height) });
-    }
-    catch (err) {
-        log.error(JSON.stringify(err));
-    }
-
+    let rpcClient = await StargateClient.connect(rpc);
+    let txs = await rpcClient.searchTx({ height: parseInt(height) });
     txs.forEach((tx) => processNewTx(network, tx));
 }
 
@@ -51,28 +43,37 @@ const processNetwork = async (network) => {
 
     stream.addListener({
         complete: () => {
-            log.warn("complete");
+            log.warn("complete: reestablishing connection")
             wsClient.disconnect();
+            processNetwork(network);
         },
         error: (err) => {
+            log.error("error: reestablishing connection")
             log.error(JSON.stringify(err));
             wsClient.disconnect();
+            processNetwork(network);
         },
         next: (newtx) => {
             let newHeight = newtx?.data?.value?.header?.height;
-            processNewHeight(network, newHeight);
+            try {
+                processNewHeight(network, newHeight);
+            }
+            catch (err) {
+                console.log(JSON.stringify(err));
+            }
         }
     });
 };
 
-(async (network) => {
+const main = async (network) => {
     log.info("Start with config");
     log.info(JSON.stringify(config));
-    log.info(network);
-    
+
     let networks = config.networks;
     if (network)
         networks = networks.filter(x => x.name === network);
 
     networks.forEach(processNetwork);
-})(process.argv[2]);
+};
+
+main(process.argv[2]);
