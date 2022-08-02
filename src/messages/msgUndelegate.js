@@ -1,16 +1,15 @@
 const { getDefaultRegistry, fromBaseUnit } = require("../helpers");
 const { notifyMsgUndelegate } = require("../tgbot");
+const Big = require('big.js');
 
 const handleMsgUndelegate = (network, msg, txhash) => {
     let decodedMsg = getDefaultRegistry().decode(msg);
-    let delegation = decodedMsg.amount;
-    let undelegatedDenomConfig = network.notifyDenoms.find(x => x.denom === delegation.denom);
-    let amountDelegated = fromBaseUnit(delegation?.amount, 6);
-    let minNotifyAmount = fromBaseUnit(undelegatedDenomConfig?.amount);
-    if (!amountDelegated || !minNotifyAmount)
+    let undelegation = decodedMsg.amount;
+    let undelegatedDenomConfig = network.notifyDenoms.find(x => x.denom === undelegation.denom);
+    if (!undelegation?.amount || !undelegatedDenomConfig?.amount)
         return;
 
-    if (parseFloat(amountDelegated) < minNotifyAmount) {
+    if (new Big(undelegation?.amount).lt(new Big(undelegatedDenomConfig?.amount))) {
         console.log(`${network.name}: undelegation less than ${undelegatedDenomConfig.amount} ${undelegatedDenomConfig.denom}`)
         return;
     }
@@ -19,7 +18,7 @@ const handleMsgUndelegate = (network, msg, txhash) => {
         decodedMsg.delegatorAddress?.toString(),
         decodedMsg.validatorAddress?.toString(),
         undelegatedDenomConfig.ticker,
-        amountDelegated,
+        fromBaseUnit(undelegation?.amount, undelegatedDenomConfig?.decimals),
         txhash,
         network.name);
 }
