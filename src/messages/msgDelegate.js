@@ -5,7 +5,7 @@ const Big = require('big.js');
 const handleMsgDelegate = (network, msg, txhash) => {
     let decodedMsg = getDefaultRegistry().decode(msg);
     let delegation = decodedMsg.amount;
-    let delegatedDenomConfig = network.notifyDenoms.find(x => x.denom === delegation.denom);
+    let delegatedDenomConfig = network.notifyDenoms.find(x => x.denom && (x.denom === delegation.denom));
     if (!delegation?.amount || !delegatedDenomConfig?.amount)
         return;
 

@@ -5,7 +5,7 @@ const Big = require('big.js');
 const handleMsgUndelegate = (network, msg, txhash) => {
     let decodedMsg = getDefaultRegistry().decode(msg);
     let undelegation = decodedMsg.amount;
-    let undelegatedDenomConfig = network.notifyDenoms.find(x => x.denom === undelegation.denom);
+    let undelegatedDenomConfig = network.notifyDenoms.find(x => x.denom && (x.denom === undelegation.denom));
     if (!undelegation?.amount || !undelegatedDenomConfig?.amount)
         return;
 

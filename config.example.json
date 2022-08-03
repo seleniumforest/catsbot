@@ -46,12 +46,37 @@
                     "denom": "ujuno",
                     "ticker": "JUNO",
                     "amount": 1000000
+                },
+                {
+                    "contract": "juno1rws84uz7969aaa7pej303udhlkt3j9ca0l3egpcae98jwak9quzq8szn2l",
+                    "amount": 100000
+                },
+                {
+                    "contract": "juno168ctmpyppk90d34p3jjy658zf5a5l3w8wk35wht6ccqj4mr0yv8s4j5awr",
+                    "amount": 100000
                 }
             ],
             "endpoints": [
                 {
                     "ws": "wss://rpc-juno-ia.notional.ventures/",
                     "rpc": "https://rpc-juno-ia.notional.ventures/"
+                }
+            ]
+        },
+        {
+            "name": "evmos",
+            "notifyDenoms": [
+                {
+                    "denom": "aevmos",
+                    "ticker": "EVMOS",
+                    "amount": 100000000000000000,
+                    "decimals": 18
+                }
+            ],
+            "endpoints": [
+                {
+                    "ws": "wss://rpc.evmos.nodestake.top/",
+                    "rpc": "https://rpc.evmos.nodestake.top/"
                 }
             ]
         }

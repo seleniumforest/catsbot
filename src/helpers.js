@@ -1,3 +1,5 @@
+const { cosmWasmTypes, createWasmAminoConverters } = require("@cosmjs/cosmwasm-stargate");
+const { wasmTypes } = require("@cosmjs/cosmwasm-stargate/build/modules");
 const { Registry } = require("@cosmjs/proto-signing");
 const { defaultRegistryTypes } = require("@cosmjs/stargate");
 const big = require("big.js");
@@ -21,9 +23,11 @@ const toBaseUnit = (amount, decimals = 6) => {
 }
 
 const getDefaultRegistry = () => new Registry(defaultRegistryTypes);
+const getCosmwasmRegistry = () => new Registry(wasmTypes);
 
 module.exports = {
     fromBaseUnit,
     toBaseUnit,
-    getDefaultRegistry
+    getDefaultRegistry,
+    getCosmwasmRegistry
 }

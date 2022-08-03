@@ -20,6 +20,23 @@
     "@cosmjs/math" "0.28.11"
     "@cosmjs/utils" "0.28.11"
 
+"@cosmjs/cosmwasm-stargate@^0.28.11":
+  "integrity" "sha512-sZ04c9ZvwAC7IngNeOhTnHJLBu7PXX3QfWM2vCVGd9puP9f3Hj3nbre75WKjHZ3DDVvxfS3u3JUJ6LjVWeIRuQ=="
+  "resolved" "https://registry.npmjs.org/@cosmjs/cosmwasm-stargate/-/cosmwasm-stargate-0.28.11.tgz"
+  "version" "0.28.11"
+  dependencies:
+    "@cosmjs/amino" "0.28.11"
+    "@cosmjs/crypto" "0.28.11"
+    "@cosmjs/encoding" "0.28.11"
+    "@cosmjs/math" "0.28.11"
+    "@cosmjs/proto-signing" "0.28.11"
+    "@cosmjs/stargate" "0.28.11"
+    "@cosmjs/tendermint-rpc" "0.28.11"
+    "@cosmjs/utils" "0.28.11"
+    "cosmjs-types" "^0.4.0"
+    "long" "^4.0.0"
+    "pako" "^2.0.2"
+
 "@cosmjs/crypto@0.28.11":
   "integrity" "sha512-oJXOeBX4FP8bp0ZVydJFcRplErHp8cC6vNoULRck+7hcLuvp9tyv3SBOkBkwxTv81VcQyGCgn7WE0NYEKrpUbw=="
   "resolved" "https://registry.npmjs.org/@cosmjs/crypto/-/crypto-0.28.11.tgz"
@@ -80,7 +97,7 @@
     "ws" "^7"
     "xstream" "^11.14.0"
 
-"@cosmjs/stargate@^0.28.11":
+"@cosmjs/stargate@^0.28.11", "@cosmjs/stargate@0.28.11":
   "integrity" "sha512-UyFH/mTNNKTZohVhj+SmjCRv/xopqU/UinGedmWzs4MqEZteX9xs6D3HTmRCgpmBQ03lpbTslE/FhhT9Hkl9KQ=="
   "resolved" "https://registry.npmjs.org/@cosmjs/stargate/-/stargate-0.28.11.tgz"
   "version" "0.28.11"
@@ -1181,8 +1198,6 @@
     "has-symbols" "^1.0.3"
 
 "global@https://github.com/component/global/archive/v2.0.1.tar.gz":
-  "integrity" "sha512-O91OcV/NbdmQJPHaRu2ekSP7bqFRLWgqSwaJvqHPZHUwmHBagQYTOra29+LnzzG3lZkXH1ANzHzfCxtAPM9HMA=="
-  "resolved" "https://github.com/component/global/archive/v2.0.1.tar.gz"
   "version" "2.0.1"
 
 "globalthis@^1.0.1":
@@ -1345,8 +1360,6 @@
   "version" "5.0.1"
 
 "jugglingdb-nano@https://github.com/Marak/nano-adapter/tarball/master":
-  "integrity" "sha512-nlcMYoj7vq9kKcMuISK6MEW4XDJ40ecuMXPR9iIfumQ06w94JTdEt7GqdDJRmMAGJvhxcn9FwQolN23AfbEZXA=="
-  "resolved" "https://github.com/Marak/nano-adapter/tarball/master"
   "version" "0.0.3-pre"
   dependencies:
     "lodash" "2.4.x"
@@ -1639,6 +1652,11 @@
   "resolved" "https://registry.npmjs.org/p-timeout/-/p-timeout-4.1.0.tgz"
   "version" "4.1.0"
 
+"pako@^2.0.2":
+  "integrity" "sha512-v8tweI900AUkZN6heMU/4Uy4cXRc2AYNRggVmTR+dEncawDJgCdLMximOVA2p4qO57WMynangsfGRb5WD6L1Bg=="
+  "resolved" "https://registry.npmjs.org/pako/-/pako-2.0.4.tgz"
+  "version" "2.0.4"
+
 "parsejson@0.0.1":
   "integrity" "sha512-W9CRvTfYQY/kbRc5Q6YTWarb/QDxdEGbd6RCP8CLUQDJV89RVHoS2A0dZYNtAcq31fulGNN4ZhAhiQQazwlKJg=="
   "resolved" "https://registry.npmjs.org/parsejson/-/parsejson-0.0.1.tgz"
@@ -1894,8 +1912,6 @@
     "mschema-rpc" "*"
 
 "resource@https://github.com/bigcompany/resource/tarball/master":
-  "integrity" "sha512-wifll/rI78EVFyiIIl0ZllduwSLQ3cv54RPgzKzjqdn8ia+stc6FhkAaAQZS8N/FEpg4nBOIG4+ax3FSTvkwnQ=="
-  "resolved" "https://github.com/bigcompany/resource/tarball/master"
   "version" "0.8.1"
   dependencies:
     "jugglingdb" "0.2.4"
@@ -2233,6 +2249,11 @@
   "resolved" "https://registry.npmjs.org/utils-merge/-/utils-merge-1.0.1.tgz"
   "version" "1.0.1"
 
+"validate.js@^0.13.1":
+  "integrity" "sha512-PnFM3xiZ+kYmLyTiMgTYmU7ZHkjBZz2/+F0DaALc/uUtVzdCt1wAosvYJ5hFQi/hz8O4zb52FQhHZRC+uVkJ+g=="
+  "resolved" "https://registry.npmjs.org/validate.js/-/validate.js-0.13.1.tgz"
+  "version" "0.13.1"
+
 "vary@~1.0.1":
   "integrity" "sha512-yNsH+tC0r8quK2tg/yqkXqqaYzeKTkSqQ+8T6xCoWgOi/bU/omMYz+6k+I91JJJDeltJzI7oridTOq6OYkY0Tw=="
   "resolved" "https://registry.npmjs.org/vary/-/vary-1.0.1.tgz"
@@ -2268,15 +2289,18 @@
     "tr46" "~0.0.3"
     "webidl-conversions" "^3.0.0"
 
-"ws@*", "ws@^8.8.1":
-  "integrity" "sha512-bGy2JzvzkPowEJV++hF07hAD6niYSr0JzBNo/J29WsB57A2r7Wlc1UFcTR9IzrPvuNVO4B8LGqF8qcpsVOhJCA=="
-  "resolved" "https://registry.npmjs.org/ws/-/ws-8.8.1.tgz"
-  "version" "8.8.1"
+"ws@*":
+  "version" "7.5.9"
 
 "ws@^7":
   "integrity" "sha512-F+P9Jil7UiSKSkppIiD94dN07AwvFixvLIj1Og1Rl9GGMuNipJnV9JzjD6XuqmAeiswGvUmNLjr5cFuXwNS77Q=="
   "resolved" "https://registry.npmjs.org/ws/-/ws-7.5.9.tgz"
   "version" "7.5.9"
+
+"ws@^8.8.1":
+  "integrity" "sha512-bGy2JzvzkPowEJV++hF07hAD6niYSr0JzBNo/J29WsB57A2r7Wlc1UFcTR9IzrPvuNVO4B8LGqF8qcpsVOhJCA=="
+  "resolved" "https://registry.npmjs.org/ws/-/ws-8.8.1.tgz"
+  "version" "8.8.1"
 
 "ws@0.4.31":
   "integrity" "sha512-mWiVQ9qZGPXvLxQ4xGy58Ix5Bw0L99SB+hDT8L59bty4fbnQczaGl4YEWR7AzLQGbvPn/30r9/o41dPiSuUmYw=="
@@ -2289,8 +2313,6 @@
     "tinycolor" "0.x"
 
 "xmlhttprequest@https://github.com/LearnBoost/node-XMLHttpRequest/archive/0f36d0b5ebc03d85f860d42a64ae9791e1daa433.tar.gz":
-  "integrity" "sha512-TVSZwoeUQ7OKhb8jnQdSxGFz+lm4MGWmhG0deeYg85VQT74x5LcSrKeXHE0ZIzEycgqQ5mF8r8e1AykA7TpNAQ=="
-  "resolved" "https://github.com/LearnBoost/node-XMLHttpRequest/archive/0f36d0b5ebc03d85f860d42a64ae9791e1daa433.tar.gz"
   "version" "1.5.0"
 
 "xstream@^11.14.0":

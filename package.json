@@ -4,6 +4,7 @@
   "main": "index.js",
   "license": "MIT",
   "dependencies": {
+    "@cosmjs/cosmwasm-stargate": "^0.28.11",
     "@cosmjs/proto-signing": "^0.28.11",
     "@cosmjs/stargate": "^0.28.11",
     "@cosmjs/tendermint-rpc": "^0.28.11",

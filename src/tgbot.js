@@ -21,6 +21,11 @@ const notifyMsgUndelegate = (delegator, validator, denom, amount, txhash, networ
         `<a href='https://www.mintscan.io/${network}/txs/${txhash}'>Tx link</a>`);
 }
 
+const notifyCw20Transfer = (sender, reciever, denom, amount, txhash, network) => {
+    notify(`Address ${sender} transferred ${amount} ${denom} tokens to ${reciever}. ` +
+        `<a href='https://www.mintscan.io/${network}/txs/${txhash}'>Tx link</a>`);
+}
+
 const notify = (message) => {
     console.log(message);
 
@@ -31,5 +36,6 @@ const notify = (message) => {
 module.exports = {
     notifyMsgSend,
     notifyMsgDelegate,
-    notifyMsgUndelegate
+    notifyMsgUndelegate,
+    notifyCw20Transfer
 };
