@@ -18,10 +18,8 @@ const handleMsgExecuteContract = async (network, msg, txhash) => {
     if (!tokenInfo)
         return;
 
-    if (new Big(decodedExecuteContractMsg.transfer.amount).lt(new Big(tokenConfig.amount))) {
-        console.log(`${network.name}: transfer less than ${tokenConfig.amount} ${tokenInfo.symbol}`)
+    if (new Big(decodedExecuteContractMsg.transfer.amount).lt(new Big(tokenConfig.amount)))
         return;
-    }
 
     notifyCw20Transfer(
         decodedMsg.sender, 
