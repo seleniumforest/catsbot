@@ -19,7 +19,7 @@ const handleMsgUndelegate = async (network, msg, txhash) => {
     let validatorName = validatorProfiles
         .find(x => x.operator_address === validatorAddress)?.moniker;
 
-    notifyMsgUndelegate(
+    await notifyMsgUndelegate(
         decodedMsg.delegatorAddress?.toString(),
         validatorName ?? shortAddress(validatorAddress),
         undelegatedDenomConfig.ticker,

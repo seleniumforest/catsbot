@@ -19,7 +19,7 @@ const handleMsgDelegate = async (network, msg, txhash) => {
     let validatorName = validatorProfiles
         .find(x => x.operator_address === validatorAddress)?.moniker;
 
-    notifyMsgDelegate(
+    await notifyMsgDelegate(
         decodedMsg.delegatorAddress?.toString(),
         validatorName ?? shortAddress(validatorAddress),
         delegatedDenomConfig.ticker,

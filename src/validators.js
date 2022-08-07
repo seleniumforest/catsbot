@@ -8,12 +8,8 @@ const validatorsCache = new NodeCache({
 
 const getValidatorProfiles = async (network, fetchUrl) => {
     let cached = validatorsCache.get(network);
-    if (cached) {
-        console.log("found cached for " + network)
+    if (cached) 
         return cached;
-    }
-
-    console.log("fetching for " + network)
 
     try {
         let profiles = await axios.get(fetchUrl, {
@@ -26,7 +22,7 @@ const getValidatorProfiles = async (network, fetchUrl) => {
         return profiles.data;
     }
     catch (err) {
-        log.error(JSON.stringify(err));
+        log.error("failed to fetch validators " + JSON.stringify(err));
         return [];
     }
 }

@@ -21,7 +21,7 @@ const handleMsgExecuteContract = async (network, msg, txhash) => {
     if (new Big(decodedExecuteContractMsg.transfer.amount).lt(new Big(tokenConfig.amount)))
         return;
 
-    notifyCw20Transfer(
+    await notifyCw20Transfer(
         decodedMsg.sender, 
         decodedExecuteContractMsg.transfer.recipient, 
         tokenInfo.symbol, 
@@ -43,7 +43,7 @@ const getCw20TokenInfo = async (rpc, contract) => {
         return info;
     }
     catch (err) {
-        log.error(JSON.stringify(err));
+        log.error("failed to fetch cw20 token info " + JSON.stringify(err));
     }
 }
 
