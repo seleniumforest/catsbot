@@ -12,7 +12,6 @@ const processNewTx = async (network, newtx, height, msgIndex = 0, recoveryMode =
     if (isFailedTx)
         return;
 
-    debugger;
     let decodedTx = decodeTxRaw(newtx.tx);
     let msgs = decodedTx.body.messages
         .filter(msg => typeof msgHandlers[msg.typeUrl] === "function")
@@ -25,15 +24,17 @@ const processNewTx = async (network, newtx, height, msgIndex = 0, recoveryMode =
     }
 }
 
-const processNewHeight = async (network, height, recoveryMode = false) => {
+const processNewHeight = async (network, height, txHashes = [], recoveryMode = false) => {
     console.log(`${network.name}: ${recoveryMode ? "recovering" : "recieved new"} block ${height}`);
     let { rpc } = network.endpoints[0];
     let rpcClient = await StargateClient.connect(rpc);
     let txs = await rpcClient.searchTx({ height: parseInt(height) });
-    //todo use limitter instead, prevent number of requests to node
+    //todo use limitter instead, decrease number of requests to node
     await new Promise(res => setTimeout(res, 1000));
     for (const tx of txs) {
-        await processNewTx(network, tx, height, 0, recoveryMode);
+        let msgIndex = recoveryMode ? txHashes.filter(x => x === tx.hash).length : 0;
+        if (msgIndex !== 0) console.log("msgIndex = " + msgIndex);
+        await processNewTx(network, tx, height, msgIndex, recoveryMode);
     }
 
 }
@@ -52,7 +53,7 @@ const processRecoveryBlocks = async (network, lastHeight) => {
     let lastBlockHeight = parseInt(lastHeight);
 
     for (let block = lastProcessedBlock; block <= lastBlockHeight; block++) {
-        await processNewHeight(network, block.toString(), true);
+        await processNewHeight(network, block.toString(), lastProcessedData.txs, true);
     }
 };
 
@@ -75,15 +76,16 @@ const processNetwork = async (network, recoveryMode) => {
         complete: () => {
             log.warn("complete: reestablishing connection")
             wsClient.disconnect();
-            processNetwork(network);
+            process.exit(1);
         },
         error: (err) => {
             log.error("reestablishing connection, error: " + JSON.stringify(err))
             wsClient.disconnect();
-            processNetwork(network);
+            process.exit(1);
         },
         next: (newtx) => {
             let newHeight = newtx?.data?.value?.header?.height;
+            
             try {
                 if (recoveryMode && !recoveryStarted) {
                     processRecoveryBlocks(network, parseInt(newHeight) - 1);
