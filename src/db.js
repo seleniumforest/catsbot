@@ -2,30 +2,37 @@ const { AceBase } = require('acebase');
 const db = new AceBase('catsdb', { logLevel: "warn", storage: { path: "./" } });
 
 const saveProcessedTx = async (network, height, txHash) => {
-    await db.ref(`network/${network.name}`)
+    await db.ref(`${network.name}/block`)
         .transaction(snapshot => {
-            console.log("saving data for block " + height)
             return {
-                network: network.name,
-                height,
-                isBlockFinalized: false,
+                height: height,
                 txs: (height !== snapshot.val()?.height) ||
                     (!snapshot.val()?.txs) ? [] : [...snapshot.val().txs, txHash]
             }
         });
 }
 
+const createEmptyBlock = async (network, height) => {
+    await db.ref(`${network.name}/block`)
+        .transaction(() => ({
+            height: height,
+            txs: []
+        }));
+}
+
 const getLastProcessedTxs = async (networkName) => {
-    let data = await db.ref(`network/${networkName}`)
+    let data = await db.ref(`${networkName}/block`)
         .get();
 
     return data.val() ?? null;
 }
+
 
 const dbReady = async () => await db.ready();
 
 module.exports = {
     saveProcessedTx,
     getLastProcessedTxs,
+    createEmptyBlock,
     dbReady
 }

@@ -5,7 +5,8 @@
         "script": "src/index.js",
         "sourceDir": "./",
         "args": [
-            "cosmos"
+            "--network=cosmos",
+            "--recovery==true"
         ]
     },
     {
@@ -14,7 +15,8 @@
         "script": "src/index.js",
         "sourceDir": "./",
         "args": [
-            "osmosis"
+            "--network=osmosis",
+            "--recovery==true"
         ]
     },
     {
@@ -23,7 +25,8 @@
         "script": "src/index.js",
         "sourceDir": "./",
         "args": [
-            "juno"
+            "--network=juno",
+            "--recovery==true"
         ]
     },
     {
@@ -32,7 +35,8 @@
         "script": "src/index.js",
         "sourceDir": "./",
         "args": [
-            "evmos"
+            "--network=evmos",
+            "--recovery==true"
         ]
     }
 ]
