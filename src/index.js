@@ -42,7 +42,7 @@ const processNewHeight = async (network, height, skipTxs = [], recoveryMode = fa
 }
 
 const processRecoveryBlocks = async (network, lastHeight) => {
-    console.log("Recovery started");
+    console.log(`${network.name}: Recovery started`);
     if (!lastHeight)
         return;
 
