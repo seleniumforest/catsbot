@@ -5,37 +5,6 @@
         "script": "src/index.js",
         "sourceDir": "./",
         "args": [
-            "--network=cosmos",
-            "--recovery==true"
-        ]
-    },
-    {
-        "uid": "osmosis",
-        "append": true,
-        "script": "src/index.js",
-        "sourceDir": "./",
-        "args": [
-            "--network=osmosis",
-            "--recovery==true"
-        ]
-    },
-    {
-        "uid": "juno",
-        "append": true,
-        "script": "src/index.js",
-        "sourceDir": "./",
-        "args": [
-            "--network=juno",
-            "--recovery==true"
-        ]
-    },
-    {
-        "uid": "evmos",
-        "append": true,
-        "script": "src/index.js",
-        "sourceDir": "./",
-        "args": [
-            "--network=evmos",
             "--recovery==true"
         ]
     }
