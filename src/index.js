@@ -30,9 +30,9 @@ const processNewHeight = async (network, height, skipTxs = [], recoveryMode = fa
     //todo use limitter instead, prevents spamming with requests to node
     if (recoveryMode)
         await new Promise(res => setTimeout(res, 1000));
-    
+
     await createEmptyBlock(network, height);
-    for (const tx of txs.filter(x => skipTxs.includes(x.txhash))) 
+    for (const tx of txs.filter(x => skipTxs.includes(x.txhash)))
         await processNewTx(network, tx, height, recoveryMode);
 }
 
@@ -55,8 +55,10 @@ const processRecoveryBlocks = async (network, lastHeight) => {
 };
 
 const processNetwork = async (network, recoveryMode) => {
-    const { ws } = network.endpoints[0];
-    const wsClient = new WebsocketClient(ws, (err) => console.log("ws client error " + JSON.stringify(err)));
+    const { ws: wsEndpoint } = network.endpoints[0];
+    const wsClient = new WebsocketClient(
+        wsEndpoint, 
+        (err) => console.log("ws client error " + JSON.stringify(err)));
 
     let stream = wsClient.listen({
         jsonrpc: "2.0",
@@ -70,48 +72,42 @@ const processNetwork = async (network, recoveryMode) => {
     let recoveryStarted = false;
     stream.addListener({
         complete: () => {
-            log.warn("complete: reestablishing connection")
+            log.warn("complete: reestablishing connection");
             wsClient.disconnect();
-            process.exit(1);
         },
         error: (err) => {
             log.error("reestablishing connection, error: " + JSON.stringify(err))
             wsClient.disconnect();
-            process.exit(1);
         },
         next: (newtx) => {
             let newHeight = newtx?.data?.value?.header?.height;
-
-            try {
-                if (recoveryMode && !recoveryStarted) {
-                    processRecoveryBlocks(network, parseInt(newHeight) - 1);
-                    recoveryStarted = true;
-                }
-                processNewHeight(network, newHeight);
+            if (recoveryMode && !recoveryStarted) {
+                processRecoveryBlocks(network, parseInt(newHeight) - 1);
+                recoveryStarted = true;
             }
-            catch (err) {
-                console.log(JSON.stringify(err));
-            }
+            processNewHeight(network, newHeight);
         }
     });
 };
 
 const main = async (network, recoveryMode) => {
-    try {
-        log.info(`Start ${recoveryMode ? "in recovery mode " : ""}with config`);
-        log.info(JSON.stringify(config));
-        await dbReady();
+    log.info(`Start ${recoveryMode ? "in recovery mode " : ""}with config`);
+    log.info(JSON.stringify(config));
+    await dbReady();
 
-        let networks = config.networks;
+    let networks = config.networks;
 
-        if (network)
-            networks = networks.filter(x => x.name === network);
+    if (network)
+        networks = networks.filter(x => x.name === network);
 
-        networks.forEach((network) => processNetwork(network, recoveryMode));
-    }
-    catch (err) {
-        log.error(JSON.stringify(err));
-    }
+    networks.forEach((network) => {
+        try {
+            processNetwork(network, recoveryMode)
+        }
+        catch (err) {
+            console.log(JSON.stringify(err));
+        }
+    });
 };
 
 main(args.network, args.recovery === "true");
