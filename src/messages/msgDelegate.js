@@ -1,7 +1,7 @@
 const { getDefaultRegistry, fromBaseUnit, shortAddress } = require("../helpers");
 const { notifyMsgDelegate } = require("../tgbot");
 const Big = require('big.js');
-const { getValidatorProfiles } = require("../validators");
+const { getValidatorProfiles } = require("../requests");
 
 const handleMsgDelegate = async (network, msg, txhash) => {
     let decodedMsg = getDefaultRegistry().decode(msg);

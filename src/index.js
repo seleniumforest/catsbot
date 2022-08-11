@@ -1,10 +1,10 @@
 const { decodeTxRaw } = require("@cosmjs/proto-signing");
-const { StargateClient } = require("@cosmjs/stargate");
 const { WebsocketClient } = require('@cosmjs/tendermint-rpc');
 const config = require("../config.json");
 const { saveProcessedTx, getLastProcessedTxs, dbReady, createEmptyBlock } = require("./db");
 const log = require("./logger");
 const msgHandlers = require("./messages");
+const { getTxsInBlock } = require("./requests");
 const args = require('yargs').argv;
 
 const processNewTx = async (network, newtx, height, recoveryMode = false) => {
@@ -25,20 +25,15 @@ const processNewTx = async (network, newtx, height, recoveryMode = false) => {
 
 const processNewHeight = async (network, height, skipTxs = [], recoveryMode = false) => {
     console.log(`${network.name}: ${recoveryMode ? "recovering" : "recieved new"} block ${height}`);
-    let { rpc } = network.endpoints[0];
-    let rpcClient = await StargateClient.connect(rpc);
-    let txs = await rpcClient.searchTx({ height: parseInt(height) });
-    //todo use limitter instead, decrease number of requests to node
+    let txs = await getTxsInBlock(network, height);
+
+    //todo use limitter instead, prevents spamming with requests to node
     if (recoveryMode)
         await new Promise(res => setTimeout(res, 1000));
+    
     await createEmptyBlock(network, height);
-    for (const tx of txs) {
-        if (skipTxs.find(x => x === tx.hash))
-            continue;
-
+    for (const tx of txs.filter(x => skipTxs.includes(x.txhash))) 
         await processNewTx(network, tx, height, recoveryMode);
-    }
-
 }
 
 const processRecoveryBlocks = async (network, lastHeight) => {

@@ -1,3 +1,4 @@
+const { StargateClient } = require("@cosmjs/stargate");
 const axios = require("axios");
 const NodeCache = require("node-cache");
 const log = require("./logger");
@@ -8,7 +9,7 @@ const validatorsCache = new NodeCache({
 
 const getValidatorProfiles = async (network, fetchUrl) => {
     let cached = validatorsCache.get(network);
-    if (cached) 
+    if (cached)
         return cached;
 
     try {
@@ -27,6 +28,21 @@ const getValidatorProfiles = async (network, fetchUrl) => {
     }
 }
 
+const getTxsInBlock = async (network, height) => {
+    let rpcs = network.endpoints.map(x => x.rpc);
+    for (const rpc of rpcs) {
+        try {
+            let rpcClient = await StargateClient.connect(rpc);
+            let txs = await rpcClient.searchTx({ height: parseInt(height) });
+            return txs;
+        } catch (err) {
+            console.log(`Error fetching txs in ${network.name}/${height} error : ${JSON.stringify(err)}`);
+        }
+    }
+}
+
+
 module.exports = {
-    getValidatorProfiles
+    getValidatorProfiles,
+    getTxsInBlock
 }
