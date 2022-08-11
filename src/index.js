@@ -32,7 +32,7 @@ const processNewHeight = async (network, height, skipTxs = [], recoveryMode = fa
         await new Promise(res => setTimeout(res, 1000));
 
     await createEmptyBlock(network, height);
-    for (const tx of txs.filter(x => skipTxs.includes(x.txhash)))
+    for (const tx of txs.filter(x => skipTxs.includes(x.hash)))
         await processNewTx(network, tx, height, recoveryMode);
 }
 
