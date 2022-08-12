@@ -32,7 +32,7 @@ const processNewHeight = async (network, height, skipTxs = [], recoveryMode = fa
         await new Promise(res => setTimeout(res, 1000));
 
     await createEmptyBlock(network, height);
-    for (const tx of txs.filter(x => skipTxs.includes(x.hash)))
+    for (const tx of txs.filter(x => !skipTxs.includes(x.hash)))
         await processNewTx(network, tx, height, recoveryMode);
 }
 
@@ -57,7 +57,7 @@ const processRecoveryBlocks = async (network, lastHeight) => {
 const processNetwork = async (network, recoveryMode) => {
     const { ws: wsEndpoint } = network.endpoints[0];
     const wsClient = new WebsocketClient(
-        wsEndpoint, 
+        wsEndpoint,
         (err) => console.log("ws client error " + JSON.stringify(err)));
 
     let stream = wsClient.listen({
@@ -72,20 +72,24 @@ const processNetwork = async (network, recoveryMode) => {
     let recoveryStarted = false;
     stream.addListener({
         complete: () => {
-            log.warn("complete: reestablishing connection");
+            console.log("complete: reestablishing connection");
             wsClient.disconnect();
         },
         error: (err) => {
-            log.error("reestablishing connection, error: " + JSON.stringify(err))
+            console.log("reestablishing connection, error: " + JSON.stringify(err))
             wsClient.disconnect();
         },
         next: (newtx) => {
-            let newHeight = newtx?.data?.value?.header?.height;
-            if (recoveryMode && !recoveryStarted) {
-                processRecoveryBlocks(network, parseInt(newHeight) - 1);
-                recoveryStarted = true;
+            try {
+                let newHeight = newtx?.data?.value?.header?.height;
+                if (recoveryMode && !recoveryStarted) {
+                    processRecoveryBlocks(network, parseInt(newHeight) - 1);
+                    recoveryStarted = true;
+                }
+                processNewHeight(network, newHeight);
+            } catch (err) {
+                console.log(JSON.stringify(err));
             }
-            processNewHeight(network, newHeight);
         }
     });
 };
