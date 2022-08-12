@@ -75,9 +75,9 @@ const createEmptyBlock = async (network, height) => {
 }
 
 app.post('/getLastProcessedTxs', function (request, response) {
-    let { networkName } = request.body;
+    let { network } = request.body;
     console.log(request.body);
-    getLastProcessedTxs(networkName)
+    getLastProcessedTxs(network)
         .then(x => {
             response.send({ status: true, txs: x })
         })
