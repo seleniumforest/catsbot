@@ -1,11 +1,5 @@
-const { Telegraf } = require("telegraf");
-const config = require("../config.json");
+const { default: axios } = require("axios");
 const { shortAddress } = require("./helpers");
-
-const isProdEnv = config.env === "prod";
-const bot = new Telegraf(config.token);
-if (isProdEnv)
-    bot.launch();
 
 const notifyMsgSend = async (from, to, denom, amount, txhash, network) => {
     await notify(`💲 #transfer 💲\nAddress ${shortAddress(from)} ` +
@@ -32,16 +26,9 @@ const notifyCw20Transfer = async (sender, reciever, denom, amount, txhash, netwo
 }
 
 const notify = async (message) => {
-    console.log(message);
-
-    if (isProdEnv)
-        await bot.telegram.sendMessage(
-            config.channel,
-            message,
-            {
-                parse_mode: "HTML",
-                disable_web_page_preview: true
-            });
+    await axios.post("http://localhost:3000/send", {
+        message
+    });
 }
 
 module.exports = {

@@ -41,7 +41,7 @@ const processRecoveryBlocks = async (network, lastHeight) => {
     if (!lastHeight)
         return;
 
-    let lastProcessedData = await getLastProcessedTxs(network.name);
+    let lastProcessedData = await getLastProcessedTxs(network);
     if (!lastProcessedData)
         return;
 
@@ -97,7 +97,6 @@ const processNetwork = async (network, recoveryMode) => {
 const main = async (network, recoveryMode) => {
     log.info(`Start ${recoveryMode ? "in recovery mode " : ""}with config`);
     log.info(JSON.stringify(config));
-    await dbReady();
 
     let networks = config.networks;
 
