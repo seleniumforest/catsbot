@@ -39,7 +39,6 @@ const db = new AceBase('catsdb', { logLevel: "warn", storage: { path: "./" } });
 
 app.post('/saveProcessedTx', function (request, response) {
     let { network, height, txHash } = request.body;
-    console.log(request.body);
     saveProcessedTx(network, height, txHash)
         .then(x => {
             response.send({ status: true })
@@ -47,7 +46,7 @@ app.post('/saveProcessedTx', function (request, response) {
 });
 
 const saveProcessedTx = async (network, height, txHash) => {
-    await db.ref(`${network.name}/block`)
+    await db.ref(`${network}/block`)
         .transaction(snapshot => {
             return {
                 height: height,
@@ -59,7 +58,6 @@ const saveProcessedTx = async (network, height, txHash) => {
 
 app.post('/createEmptyBlock', function (request, response) {
     let { network, height } = request.body;
-    console.log(request.body);
     createEmptyBlock(network, height)
         .then(x => {
             response.send({ status: true })
@@ -67,7 +65,7 @@ app.post('/createEmptyBlock', function (request, response) {
 });
 
 const createEmptyBlock = async (network, height) => {
-    await db.ref(`${network.name}/block`)
+    await db.ref(`${network}/block`)
         .transaction(() => ({
             height: height,
             txs: []
@@ -76,10 +74,9 @@ const createEmptyBlock = async (network, height) => {
 
 app.post('/getLastProcessedTxs', function (request, response) {
     let { network } = request.body;
-    console.log(request.body);
     getLastProcessedTxs(network)
         .then(x => {
-            response.send({ status: true, txs: x })
+            response.send({ status: true, data: x })
         })
 });
 

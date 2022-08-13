@@ -92,6 +92,19 @@ const processNetwork = async (network, recoveryMode) => {
             }
         }
     });
+
+    // https://github.com/cosmos/cosmjs/issues/1217
+    let lastCheckedBlock = -1;
+    setInterval(() => {
+        getLastProcessedTxs(network).then(data => {
+            let lastSavedBlock = data?.height;
+            if (lastCheckedBlock === lastSavedBlock) {
+                console.log("Subscription died, restarting");
+                process.exit(1);
+            };
+            lastCheckedBlock = lastSavedBlock;
+        });
+    }, 60000);
 };
 
 const main = async (network, recoveryMode) => {

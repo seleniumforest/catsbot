@@ -12,7 +12,7 @@
                 "<node_internals>/**"
             ],
             "program": "${workspaceFolder}/src/index.js",
-            "args": ["--recovery=true", "--network=cosmos"]
+            "args": ["--recovery=false", "--network=cosmos"]
         },
         {
             "type": "node",

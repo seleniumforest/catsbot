@@ -16,8 +16,8 @@ const getLastProcessedTxs = async (network) => {
     let response = await axios.post("http://localhost:3000/getLastProcessedTxs", {
         network: network.name
     });
-    
-    return response.data.txs;
+
+    return response.data.data;
 }
 
 module.exports = {
