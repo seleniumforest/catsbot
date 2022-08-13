@@ -1,6 +1,7 @@
 config.json
 config1.json
 catsdb.acebase/
+config/secrets.json
 
 # Logs
 logs

@@ -1,7 +1,6 @@
 const { getDefaultRegistry, fromBaseUnit, shortAddress } = require("../helpers");
-const { notifyMsgDelegate } = require("../tgbot");
 const Big = require('big.js');
-const { getValidatorProfiles } = require("../requests");
+const { getValidatorProfiles, notify } = require("../requests");
 
 const handleMsgDelegate = async (network, msg, txhash) => {
     let decodedMsg = getDefaultRegistry().decode(msg);
@@ -26,6 +25,12 @@ const handleMsgDelegate = async (network, msg, txhash) => {
         fromBaseUnit(delegation?.amount, delegatedDenomConfig?.decimals),
         txhash,
         network.name);
+}
+
+const notifyMsgDelegate = async (from, to, denom, amount, txhash, network) => {
+    await notify(`🐳 #delegation 🐳\nAddress ${shortAddress(from)} ` +
+        `delegated ${amount} ${denom} to ${to}. \n` +
+        `<a href='https://www.mintscan.io/${network}/txs/${txhash}'>Tx link</a>`);
 }
 
 module.exports = handleMsgDelegate

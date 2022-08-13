@@ -1,11 +1,9 @@
 const { decodeTxRaw } = require("@cosmjs/proto-signing");
 const { WebsocketClient } = require('@cosmjs/tendermint-rpc');
-const config = require("../config.json");
-const { saveProcessedTx, getLastProcessedTxs, dbReady, createEmptyBlock } = require("./db");
-const log = require("./logger");
 const msgHandlers = require("./messages");
-const { getTxsInBlock } = require("./requests");
+const { saveProcessedTx, getLastProcessedTxs, createEmptyBlock, getTxsInBlock } = require("./requests");
 const args = require('yargs').argv;
+const { networks } = require("../config/networks.json");
 
 const processNewTx = async (network, newtx, height, recoveryMode = false) => {
     let isFailedTx = newtx.code !== 0;
@@ -55,7 +53,8 @@ const processRecoveryBlocks = async (network, lastHeight) => {
 };
 
 const processNetwork = async (network, recoveryMode) => {
-    const { ws: wsEndpoint } = network.endpoints[0];
+    console.log(`Start processing ${network.name}`);
+    const [{ ws: wsEndpoint }] = network.endpoints;
     const wsClient = new WebsocketClient(
         wsEndpoint,
         (err) => console.log("ws client error " + JSON.stringify(err)));
@@ -73,11 +72,9 @@ const processNetwork = async (network, recoveryMode) => {
     stream.addListener({
         complete: () => {
             console.log("complete: reestablishing connection");
-            wsClient.disconnect();
         },
         error: (err) => {
             console.log("reestablishing connection, error: " + JSON.stringify(err))
-            wsClient.disconnect();
         },
         next: (newtx) => {
             try {
@@ -107,23 +104,12 @@ const processNetwork = async (network, recoveryMode) => {
     }, 60000);
 };
 
-const main = async (network, recoveryMode) => {
-    log.info(`Start ${recoveryMode ? "in recovery mode " : ""}with config`);
-    log.info(JSON.stringify(config));
+((networkName, recoveryMode) => {
+    console.log(`Start in ${recoveryMode ? "recovery" : "normal"} mode`);
 
-    let networks = config.networks;
+    let selectedNetworks = networks;
+    if (networkName)
+        selectedNetworks = selectedNetworks.filter(net => net.name === networkName);
 
-    if (network)
-        networks = networks.filter(x => x.name === network);
-
-    networks.forEach((network) => {
-        try {
-            processNetwork(network, recoveryMode)
-        }
-        catch (err) {
-            console.log(JSON.stringify(err));
-        }
-    });
-};
-
-main(args.network, args.recovery === "true");
+    selectedNetworks.forEach((network) => processNetwork(network, recoveryMode));
+})(args.network, args.recovery === "true");

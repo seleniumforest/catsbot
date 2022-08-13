@@ -1,4 +1,3 @@
-const { cosmWasmTypes, createWasmAminoConverters } = require("@cosmjs/cosmwasm-stargate");
 const { wasmTypes } = require("@cosmjs/cosmwasm-stargate/build/modules");
 const { Registry } = require("@cosmjs/proto-signing");
 const { defaultRegistryTypes } = require("@cosmjs/stargate");

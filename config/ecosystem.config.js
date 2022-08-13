@@ -1,7 +1,13 @@
 module.exports = {
   apps: [{
     name: "server",
-    script: "./src/server.js"
+    script: "./src/server/server.js",
+    env_prod: {
+      NODE_ENV: "prod"
+    },
+    env_dev: {
+      NODE_ENV: "dev" 
+    }
   },
   {
     name: "cosmos",

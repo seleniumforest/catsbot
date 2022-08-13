@@ -1,10 +1,6 @@
-const { getCosmwasmRegistry, fromBaseUnit } = require("../helpers");
-const { notifyCw20Transfer } = require("../tgbot");
+const { getCosmwasmRegistry, fromBaseUnit, shortAddress } = require("../helpers");
 const Big = require('big.js');
-const { CosmWasmClient } = require("@cosmjs/cosmwasm-stargate");
-const log = require("../logger");
-
-const memoizedTokens = [];
+const { notify, getCw20TokenInfo } = require("../requests");
 
 const handleMsgExecuteContract = async (network, msg, txhash) => {
     let decodedMsg = getCosmwasmRegistry().decode(msg);
@@ -14,7 +10,7 @@ const handleMsgExecuteContract = async (network, msg, txhash) => {
     if (!isTransferMsg || !tokenConfig)
         return;
 
-    let tokenInfo = await getCw20TokenInfo(network.endpoints[0].rpc, decodedMsg.contract);
+    let tokenInfo = await getCw20TokenInfo(network, decodedMsg.contract);
     if (!tokenInfo)
         return;
 
@@ -31,20 +27,10 @@ const handleMsgExecuteContract = async (network, msg, txhash) => {
     )
 }
 
-const getCw20TokenInfo = async (rpc, contract) => {
-    if (memoizedTokens[contract])
-        return memoizedTokens[contract];
-
-    try {
-        const client = await CosmWasmClient.connect(rpc);
-        const info = await client.queryContractSmart(contract, { "token_info": {} });
-
-        memoizedTokens[contract] = info;
-        return info;
-    }
-    catch (err) {
-        log.error("failed to fetch cw20 token info " + JSON.stringify(err));
-    }
+const notifyCw20Transfer = async (sender, reciever, denom, amount, txhash, network) => {
+    await notify(`💲 #tokentransfer 💲\nAddress ${shortAddress(sender)} ` +
+        `transferred ${amount} ${denom} tokens to ${shortAddress(reciever)}. \n` +
+        `<a href='https://www.mintscan.io/${network}/txs/${txhash}'>TX link</a>`);
 }
 
 const isCw20TransferMsg = (msg) => {

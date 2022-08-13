@@ -1,6 +1,6 @@
-const { getDefaultRegistry, fromBaseUnit } = require("../helpers");
-const { notifyMsgSend } = require("../tgbot");
+const { getDefaultRegistry, fromBaseUnit, shortAddress } = require("../helpers");
 const Big = require('big.js');
+const { notify } = require("../requests");
 
 const handleMsgSend = async (network, msg, txhash) => {
     let decodedMsg = getDefaultRegistry().decode(msg);
@@ -22,6 +22,12 @@ const handleMsgSend = async (network, msg, txhash) => {
             txhash,
             network.name);
     }
+}
+
+const notifyMsgSend = async (from, to, denom, amount, txhash, network) => {
+    await notify(`💲 #transfer 💲\nAddress ${shortAddress(from)} ` +
+        `sent ${amount} ${denom} to ${shortAddress(to)}. \n` +
+        `<a href='https://www.mintscan.io/${network}/txs/${txhash}'>Tx link</a>`);
 }
 
 module.exports = handleMsgSend;
