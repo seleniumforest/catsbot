@@ -36,7 +36,20 @@ const getTxsInBlock = async (network, height) => {
             let txs = await rpcClient.searchTx({ height: parseInt(height) });
             return txs;
         } catch (err) {
-            console.log(`Error fetching txs in ${network.name}/${height} error : ${JSON.stringify(err)}`);
+            console.log(`Error fetching txs in ${network.name}/${height} rpc ${rpc} error : ${JSON.stringify(err)}`);
+        }
+    }
+}
+
+const getNewHeight = async (network) => {
+    let rpcs = network.endpoints.map(x => x.rpc);
+    for (const rpc of rpcs) {
+        try {
+            let rpcClient = await StargateClient.connect(rpc);
+            let height = await rpcClient.getHeight();
+            return height;
+        } catch (err) {
+            console.log(`Error fetching height in ${network.name} rpc ${rpc} error : ${JSON.stringify(err)}`);
         }
     }
 }
@@ -44,5 +57,6 @@ const getTxsInBlock = async (network, height) => {
 
 module.exports = {
     getValidatorProfiles,
-    getTxsInBlock
+    getTxsInBlock,
+    getNewHeight
 }

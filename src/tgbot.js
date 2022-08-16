@@ -33,7 +33,7 @@ const notifyCw20Transfer = async (sender, reciever, denom, amount, txhash, netwo
 
 const notify = async (message) => {
     console.log(message);
-
+    
     if (isProdEnv)
         await bot.telegram.sendMessage(
             config.channel,

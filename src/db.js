@@ -20,8 +20,8 @@ const createEmptyBlock = async (network, height) => {
         }));
 }
 
-const getLastProcessedTxs = async (networkName) => {
-    let data = await db.ref(`${networkName}/block`)
+const getLastProcessedTxs = async (network) => {
+    let data = await db.ref(`${network.name}/block`)
         .get();
 
     return data.val() ?? null;

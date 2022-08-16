@@ -1,13 +1,13 @@
 const { decodeTxRaw } = require("@cosmjs/proto-signing");
-const { WebsocketClient } = require('@cosmjs/tendermint-rpc');
+const { co } = require("co");
 const config = require("../config.json");
 const { saveProcessedTx, getLastProcessedTxs, dbReady, createEmptyBlock } = require("./db");
 const log = require("./logger");
 const msgHandlers = require("./messages");
-const { getTxsInBlock } = require("./requests");
+const { getTxsInBlock, getNewHeight } = require("./requests");
 const args = require('yargs').argv;
 
-const processNewTx = async (network, newtx, height, recoveryMode = false) => {
+const processNewTx = async (network, newtx, height) => {
     let isFailedTx = newtx.code !== 0;
     if (isFailedTx)
         return;
@@ -18,85 +18,47 @@ const processNewTx = async (network, newtx, height, recoveryMode = false) => {
 
     for (const msg of msgs) {
         await msgHandlers[msg.typeUrl](network, msg, newtx.hash);
-        if (!recoveryMode)
-            await saveProcessedTx(network, height, newtx.hash);
+        await saveProcessedTx(network, height, newtx.hash);
     }
 }
 
-const processNewHeight = async (network, height, skipTxs = [], recoveryMode = false) => {
-    console.log(`${network.name}: ${recoveryMode ? "recovering" : "recieved new"} block ${height}`);
+const processNewHeight = async (network, height, skipTxs = []) => {
+    console.log(`${network.name}: recieved new block ${height}`);
+    await createEmptyBlock(network, height);
     let txs = await getTxsInBlock(network, height);
 
-    //todo use limitter instead, prevents spamming with requests to node
-    if (recoveryMode)
-        await new Promise(res => setTimeout(res, 1000));
-
-    await createEmptyBlock(network, height);
     for (const tx of txs.filter(x => !skipTxs.includes(x.hash)))
-        await processNewTx(network, tx, height, recoveryMode);
+        await processNewTx(network, tx, height);
 }
 
-const processRecoveryBlocks = async (network, lastHeight) => {
-    console.log(`${network.name}: Recovery started`);
-    if (!lastHeight)
-        return;
+const processNetwork = (network) => {
+    let cleanMode = args.clean === "true";
+    
+    co(function* () {
+        while (true) {
+            let lastProcessedData = yield getLastProcessedTxs(network);
+            let newHeight = yield getNewHeight(network);
 
-    let lastProcessedData = await getLastProcessedTxs(network.name);
-    if (!lastProcessedData)
-        return;
+            //if there's no db, init first block record
+            if (!lastProcessedData || cleanMode) {
+                cleanMode = false;
+                yield processNewHeight(network, newHeight);
+                continue;
+            }
+            
+            let fromBlockHeight = parseInt(lastProcessedData.height);
+            //prevent spamming to node 
+            if (fromBlockHeight === newHeight)
+                yield new Promise(res => setTimeout(res, 10000));
 
-    let lastProcessedBlock = parseInt(lastProcessedData.height);
-    let lastBlockHeight = parseInt(lastHeight);
-
-    for (let block = lastProcessedBlock; block <= lastBlockHeight; block++) {
-        let skipTxs = block === parseInt(lastProcessedData.height) ? lastProcessedData.txs : [];
-        await processNewHeight(network, block.toString(), skipTxs, true);
-    }
-};
-
-const processNetwork = async (network, recoveryMode) => {
-    const { ws: wsEndpoint } = network.endpoints[0];
-    const wsClient = new WebsocketClient(
-        wsEndpoint,
-        (err) => console.log("ws client error " + JSON.stringify(err)));
-
-    let stream = wsClient.listen({
-        jsonrpc: "2.0",
-        method: "subscribe",
-        id: 0,
-        params: {
-            query: "tm.event='NewBlockHeader'"
-        }
-    });
-
-    let recoveryStarted = false;
-    stream.addListener({
-        complete: () => {
-            console.log("complete: reestablishing connection");
-            wsClient.disconnect();
-        },
-        error: (err) => {
-            console.log("reestablishing connection, error: " + JSON.stringify(err))
-            wsClient.disconnect();
-        },
-        next: (newtx) => {
-            try {
-                let newHeight = newtx?.data?.value?.header?.height;
-                if (recoveryMode && !recoveryStarted) {
-                    processRecoveryBlocks(network, parseInt(newHeight) - 1);
-                    recoveryStarted = true;
-                }
-                processNewHeight(network, newHeight);
-            } catch (err) {
-                console.log(JSON.stringify(err));
+            for (let block = fromBlockHeight + 1; block <= newHeight; block++) {
+                yield processNewHeight(network, block);
             }
         }
-    });
+    }).catch((err) => console.error(err));
 };
 
-const main = async (network, recoveryMode) => {
-    log.info(`Start ${recoveryMode ? "in recovery mode " : ""}with config`);
-    log.info(JSON.stringify(config));
+const main = async (network) => {
     await dbReady();
 
     let networks = config.networks;
@@ -104,14 +66,9 @@ const main = async (network, recoveryMode) => {
     if (network)
         networks = networks.filter(x => x.name === network);
 
-    networks.forEach((network) => {
-        try {
-            processNetwork(network, recoveryMode)
-        }
-        catch (err) {
-            console.log(JSON.stringify(err));
-        }
-    });
+    co(function* () {
+        yield networks.map((network) => processNetwork(network));
+    }).catch((err) => console.error(err));
 };
 
-main(args.network, args.recovery === "true");
+main(args.network);
