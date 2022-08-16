@@ -35,3 +35,10 @@
   - Show logs stored in ~/.pm2/logs/
   
       ``` pm2 logs ```
+
+## Roadmap
+
+- [] Osmosis whale swaps
+- [] Show Prices in USD
+- [] Add Secret network
+- [] Add IBC-txs
