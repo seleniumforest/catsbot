@@ -9,7 +9,7 @@
 ```
 
 {
-    "env": "prod"
+    "env": "prod",
     "token": "1231231212:Qwertyuiopasdfghjkl;xcvbnm1234567890",
     "channel": "@username"
     ...
