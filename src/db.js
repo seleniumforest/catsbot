@@ -24,7 +24,7 @@ const getLastProcessedTxs = async (network) => {
     let data = await db.ref(`${network.name}/block`)
         .get();
 
-    return data.val() ?? null;
+    return data.val();
 }
 
 

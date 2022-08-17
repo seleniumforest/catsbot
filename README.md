@@ -4,7 +4,7 @@
 
 0. Run ``` yarn install ```
 
-1. rename config.example.js to config.json and specify env to prod, your telegram bot token and channel to send notifications
+1. rename config.example.json to config.json and specify env to prod, your telegram bot token and channel to send notifications
 
 ```
 

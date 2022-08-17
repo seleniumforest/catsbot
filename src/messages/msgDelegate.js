@@ -21,7 +21,7 @@ const handleMsgDelegate = async (network, msg, txhash) => {
 
     await notifyMsgDelegate(
         decodedMsg.delegatorAddress?.toString(),
-        validatorName ?? shortAddress(validatorAddress),
+        validatorName || shortAddress(validatorAddress),
         delegatedDenomConfig.ticker,
         fromBaseUnit(delegation?.amount, delegatedDenomConfig?.decimals),
         txhash,

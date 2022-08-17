@@ -21,7 +21,7 @@ const handleMsgUndelegate = async (network, msg, txhash) => {
 
     await notifyMsgUndelegate(
         decodedMsg.delegatorAddress?.toString(),
-        validatorName ?? shortAddress(validatorAddress),
+        validatorName || shortAddress(validatorAddress),
         undelegatedDenomConfig.ticker,
         fromBaseUnit(undelegation?.amount, undelegatedDenomConfig?.decimals),
         txhash,

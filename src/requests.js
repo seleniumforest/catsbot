@@ -4,6 +4,7 @@ const { co } = require("co");
 const NodeCache = require("node-cache");
 const config = require("../config.json");
 const log = require("./logger");
+const { chains } = require('chain-registry');
 
 const validatorsCache = new NodeCache({
     stdTTL: 60 * 60 * 12 //12 hours in seconds
@@ -58,11 +59,16 @@ const getNewHeight = async (network) => {
 
 const getChainData = (network) => {
     return co(function* () { 
-        let name = network.registryName ?? network.name;
+        let name = network.registryName || network.name;
 
         for (let api of config.registryApis) {
-            //let { data: assetList } = yield axios.get(`${api}/${name}/assetlist.json`);
-            let { data: chainInfo } = yield axios.get(`${api}/${name}/chain.json`);
+            let chainInfo = null;
+
+            try {
+                chainInfo = yield axios.get(`${api}/${name}/chin.json`);
+            } catch (err) {}
+
+            chainInfo = chainInfo || chains.find(chain => chain.chain_name === name);
 
             return yield {
                 endpoints: chainInfo.apis.rpc,
