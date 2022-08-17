@@ -14,7 +14,7 @@ const handleMsgExecuteContract = async (network, msg, txhash) => {
     if (!isTransferMsg || !tokenConfig)
         return;
 
-    let tokenInfo = await getCw20TokenInfo(network.endpoints[0].rpc, decodedMsg.contract);
+    let tokenInfo = await getCw20TokenInfo(network, decodedMsg.contract);
     if (!tokenInfo)
         return;
 
@@ -22,28 +22,30 @@ const handleMsgExecuteContract = async (network, msg, txhash) => {
         return;
 
     await notifyCw20Transfer(
-        decodedMsg.sender, 
-        decodedExecuteContractMsg.transfer.recipient, 
-        tokenInfo.symbol, 
-        fromBaseUnit(decodedExecuteContractMsg.transfer.amount, tokenInfo.decimals), 
+        decodedMsg.sender,
+        decodedExecuteContractMsg.transfer.recipient,
+        tokenInfo.symbol,
+        fromBaseUnit(decodedExecuteContractMsg.transfer.amount, tokenInfo.decimals),
         txhash,
         network.name
     )
 }
 
-const getCw20TokenInfo = async (rpc, contract) => {
+const getCw20TokenInfo = async (network, contract) => {
     if (memoizedTokens[contract])
         return memoizedTokens[contract];
+        
+    for (const { address: rpc } of network.getEndpoints()) {
+        try {
+            let client = await CosmWasmClient.connect(rpc);
+            let info = await client.queryContractSmart(contract, { "token_info": {} });
 
-    try {
-        const client = await CosmWasmClient.connect(rpc);
-        const info = await client.queryContractSmart(contract, { "token_info": {} });
-
-        memoizedTokens[contract] = info;
-        return info;
-    }
-    catch (err) {
-        log.error("failed to fetch cw20 token info " + JSON.stringify(err));
+            memoizedTokens[contract] = info;
+            return info;
+        }
+        catch (err) {
+            log.error("failed to fetch cw20 token info " + JSON.stringify(err));
+        }
     }
 }
 

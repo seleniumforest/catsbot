@@ -4,8 +4,10 @@ const config = require("../config.json");
 const { saveProcessedTx, getLastProcessedTxs, dbReady, createEmptyBlock } = require("./db");
 const log = require("./logger");
 const msgHandlers = require("./messages");
-const { getTxsInBlock, getNewHeight } = require("./requests");
+const { getTxsInBlock, getNewHeight, getChainData } = require("./requests");
+const { getEndpointGenerator } = require ("./helpers");
 const args = require('yargs').argv;
+const _ = require('lodash');
 
 const processNewTx = async (network, newtx, height) => {
     let isFailedTx = newtx.code !== 0;
@@ -33,7 +35,7 @@ const processNewHeight = async (network, height, skipTxs = []) => {
 
 const processNetwork = (network) => {
     let cleanMode = args.clean === "true";
-    
+console.log(network.getEndpoints())
     co(function* () {
         while (true) {
             let lastProcessedData = yield getLastProcessedTxs(network);
@@ -45,7 +47,7 @@ const processNetwork = (network) => {
                 yield processNewHeight(network, newHeight);
                 continue;
             }
-            
+
             let fromBlockHeight = parseInt(lastProcessedData.height);
             //prevent spamming to node 
             if (fromBlockHeight === newHeight)
@@ -55,20 +57,24 @@ const processNetwork = (network) => {
                 yield processNewHeight(network, block);
             }
         }
-    }).catch((err) => console.error(err));
+    });
 };
 
-const main = async (network) => {
-    await dbReady();
 
-    let networks = config.networks;
+co(function* () {
+    yield dbReady();
+    let networks = args.network ?
+        config.networks.filter(x => x.name === args.network) :
+        config.networks;
 
-    if (network)
-        networks = networks.filter(x => x.name === network);
-
-    co(function* () {
-        yield networks.map((network) => processNetwork(network));
-    }).catch((err) => console.error(err));
-};
-
-main(args.network);
+    for (let network of networks) {
+        let chainData = yield getChainData(network);
+        processNetwork({ 
+            ...network, 
+            ...chainData, 
+            getEndpoints: function () {
+                return _.shuffle([...this.endpoints]);
+            } 
+        })
+    }
+}).catch(err => console.log(err));
