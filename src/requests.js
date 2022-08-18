@@ -103,7 +103,7 @@ const getChainData = (network) => {
                 chainInfo = yield axios.get(`${api}/${name}/chain.json`);
             } catch (err) { }
 
-            chainInfo = chainInfo || 
+            chainInfo = chainInfo.data || 
                 chains.find(chain => chain.chain_name === network.registryName || 
                                      chain.chain_name === network.name);
 
