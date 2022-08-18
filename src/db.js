@@ -1,6 +1,8 @@
 const { AceBase } = require('acebase');
 const db = new AceBase('catsdb', { logLevel: "warn", storage: { path: "./" } });
 
+const dbReady = async () => await db.ready();
+
 const saveProcessedTx = async (network, height, txHash) => {
     await db.ref(`${network.name}/block`)
         .transaction(snapshot => {
@@ -26,9 +28,6 @@ const getLastProcessedTxs = async (network) => {
 
     return data.val();
 }
-
-
-const dbReady = async () => await db.ready();
 
 module.exports = {
     saveProcessedTx,

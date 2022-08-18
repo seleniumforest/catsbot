@@ -2,12 +2,10 @@ const { decodeTxRaw } = require("@cosmjs/proto-signing");
 const { co } = require("co");
 const config = require("../config.json");
 const { saveProcessedTx, getLastProcessedTxs, dbReady, createEmptyBlock } = require("./db");
-const log = require("./logger");
 const msgHandlers = require("./messages");
 const { getTxsInBlock, getNewHeight, getChainData } = require("./requests");
-const { getEndpointGenerator } = require ("./helpers");
+const { getRankedEndpoints } = require("./helpers");
 const args = require('yargs').argv;
-const _ = require('lodash');
 
 const processNewTx = async (network, newtx, height) => {
     let isFailedTx = newtx.code !== 0;
@@ -35,7 +33,7 @@ const processNewHeight = async (network, height, skipTxs = []) => {
 
 const processNetwork = (network) => {
     let cleanMode = args.clean === "true";
-console.log(network.getEndpoints())
+
     co(function* () {
         while (true) {
             let lastProcessedData = yield getLastProcessedTxs(network);
@@ -51,7 +49,7 @@ console.log(network.getEndpoints())
             let fromBlockHeight = parseInt(lastProcessedData.height);
             //prevent spamming to node 
             if (fromBlockHeight === newHeight)
-                yield new Promise(res => setTimeout(res, 10000));
+                yield new Promise(res => setTimeout(res, 500));
 
             for (let block = fromBlockHeight + 1; block <= newHeight; block++) {
                 yield processNewHeight(network, block);
@@ -69,11 +67,12 @@ co(function* () {
 
     for (let network of networks) {
         let chainData = yield getChainData(network);
+
         processNetwork({ 
             ...network, 
             ...chainData, 
             getEndpoints: function () {
-                return _.shuffle([...this.endpoints]);
+                return getRankedEndpoints(this.endpoints);
             } 
         })
     }

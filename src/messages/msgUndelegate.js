@@ -14,7 +14,7 @@ const handleMsgUndelegate = async (network, msg, txhash) => {
         return;
 
     let validatorProfiles =
-        await getValidatorProfiles(network.name, network.endpoints[0].validators);
+        await getValidatorProfiles(network);
     let validatorAddress = decodedMsg.validatorAddress?.toString();
     let validatorName = validatorProfiles
         .find(x => x.operator_address === validatorAddress)?.moniker;

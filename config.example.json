@@ -9,63 +9,18 @@
     "networks": [
         {
             "name": "cosmos",
+            "validatorsApi": "https://api.cosmostation.io/v1/staking/validators",
             "notifyDenoms": [
                 {
                     "denom": "uatom",
                     "ticker": "ATOM",
                     "amount": 10000000000
                 }
-            ],
-            "endpoints": [
-                {
-                    "ws": "wss://rpc-cosmoshub-ia.notional.ventures/",
-                    "rpc": "https://rpc-cosmoshub-ia.notional.ventures",
-                    "validators": "https://api.cosmostation.io/v1/staking/validators"
-                },
-                {
-                    "rpc": "https://cosmos-rpc.quickapi.com:443",
-                    "provider": "Chainlayer"
-                },
-                {
-                    "rpc": "https://rpc-cosmoshub.whispernode.com",
-                    "provider": " WhisperNode🤐"
-                },
-                {
-                    "rpc": "https://rpc-cosmoshub.blockapsis.com",
-                    "provider": "chainapsis"
-                },
-                {
-                    "rpc": "https://cosmoshub.validator.network",
-                    "provider": "validatornetwork"
-                },
-                {
-                    "rpc": "https://rpc.cosmoshub.strange.love",
-                    "provider": "strangelove-ventures"
-                },
-                {
-                    "rpc": "https://rpc.cosmos.network",
-                    "provider": "tendermint-inc"
-                },
-                {
-                    "rpc": "https://rpc-cosmoshub.ecostake.com",
-                    "provider": "ecostake"
-                },
-                {
-                    "rpc": "https://rpc.cosmoshub.pupmos.network",
-                    "provider": "PUPMØS"
-                },
-                {
-                    "rpc": "https://cosmos-rpc.polkachu.com",
-                    "provider": "Polkachu"
-                },
-                {
-                    "rpc": "https://rpc.cosmos.ezstaking.io",
-                    "provider": "EZStaking.io"
-                }
             ]
         },
         {
             "name": "osmosis",
+            "validatorsApi": "https://api-osmosis.cosmostation.io/v1/staking/validators",
             "notifyDenoms": [
                 {
                     "denom": "uosmo",
@@ -77,53 +32,11 @@
                     "ticker": "ION",
                     "amount": 1000000
                 }
-            ],
-            "endpoints": [
-                {
-                    "ws": "wss://rpc-osmosis.blockapsis.com/",
-                    "rpc": "https://rpc-osmosis.blockapsis.com",
-                    "validators": "https://api-osmosis.cosmostation.io/v1/staking/validators"
-                },
-                {
-                    "rpc": "https://osmosis-rpc.quickapi.com:443",
-                    "provider": "Chainlayer"
-                },
-                {
-                    "rpc": "https://rpc-osmosis.whispernode.com",
-                    "provider": "WhisperNode 🤐"
-                },
-                {
-                    "rpc": "https://osmosis.validator.network",
-                    "provider": "validatornetwork"
-                },
-                {
-                    "rpc": "https://rpc-osmosis.blockapsis.com",
-                    "provider": "chainapsis"
-                },
-                {
-                    "rpc": "https://rpc-osmosis.ecostake.com",
-                    "provider": "ecostake"
-                },
-                {
-                    "rpc": "https://osmosis-rpc.polkachu.com",
-                    "provider": "Polkachu"
-                },
-                {
-                    "rpc": "https://rpc-osmosis-ia.notional.ventures",
-                    "provider": "Notional"
-                },
-                {
-                    "rpc": "https://rpc.osmosis.zone",
-                    "provider": "Osmosis Foundation"
-                },
-                {
-                    "rpc": "https://rpc.osmosis.interbloc.org",
-                    "provider": "Interbloc"
-                }
             ]
         },
         {
             "name": "juno",
+            "validatorsApi": "https://api-juno.cosmostation.io/v1/staking/validators",
             "notifyDenoms": [
                 {
                     "denom": "ujuno",
@@ -134,98 +47,17 @@
                     "contract": "juno168ctmpyppk90d34p3jjy658zf5a5l3w8wk35wht6ccqj4mr0yv8s4j5awr",
                     "amount": 1000000
                 }
-            ],
-            "endpoints": [
-                {
-                    "ws": "wss://rpc-juno-ia.notional.ventures/",
-                    "rpc": "https://rpc-juno-ia.notional.ventures/",
-                    "validators": "https://api-juno.cosmostation.io/v1/staking/validators"
-                },
-                {
-                    "rpc": "https://rpc-juno.whispernode.com",
-                    "provider": " WhisperNode 🤐"
-                },
-                {
-                    "rpc": "https://rpc-juno.itastakers.com",
-                    "provider": "itastakers"
-                },
-                {
-                    "rpc": "https://rpc-juno.ecostake.com",
-                    "provider": "ecostake"
-                },
-                {
-                    "rpc": "https://juno-rpc.polkachu.com",
-                    "provider": "Polkachu"
-                },
-                {
-                    "rpc": "https://rpc.juno.pupmos.network",
-                    "provider": "PUPMØS"
-                },
-                {
-                    "rpc": "https://rpc.junomint.com",
-                    "provider": "EZStaking.io"
-                },
-                {
-                    "rpc": "https://rpc-juno-ia.notional.ventures",
-                    "provider": "Notional"
-                }
             ]
         },
         {
             "name": "evmos",
+            "validatorsApi": "https://api-evmos.cosmostation.io/v1/staking/validators",
             "notifyDenoms": [
                 {
                     "denom": "aevmos",
                     "ticker": "EVMOS",
                     "amount": 10000000000000000000000,
                     "decimals": 18
-                }
-            ],
-            "endpoints": [
-                {
-                    "ws": "wss://rpc-evmos.whispernode.com/",
-                    "rpc": "https://rpc-evmos.whispernode.com/",
-                    "validators": "https://api-evmos.cosmostation.io/v1/staking/validators"
-                },
-                {
-                    "rpc": "https://rpc-evmos.whispernode.com",
-                    "provider": " WhisperNode 🤐"
-                },
-                {
-                    "rpc": "https://tendermint.bd.evmos.org:26657",
-                    "provider": "Blockdaemon"
-                },
-                {
-                    "rpc": "https://rpc.evmos.ezstaking.io",
-                    "provider": "EZStaking.io"
-                },
-                {
-                    "rpc": "https://rpc-evmos-ia.notional.ventures:443",
-                    "provider": "Notional"
-                },
-                {
-                    "rpc": "https://rpc.evmos.posthuman.digital",
-                    "provider": "POSTHUMAN ꝏ DVS"
-                },
-                {
-                    "rpc": "https://rpc.evmos.interbloc.org",
-                    "provider": "Interbloc"
-                },
-                {
-                    "rpc": "https://rpc.evmos.testnet.run",
-                    "provider": "TestNetRun"
-                },
-                {
-                    "rpc": "https://rpc.evmos.nodestake.top",
-                    "provider": "NodeStake"
-                },
-                {
-                    "rpc": "https://rpc-evmos.ecostake.com",
-                    "provider": "ecostake"
-                },
-                {
-                    "rpc": "https://rpc.evmos.bh.rocks",
-                    "provider": "BlockHunters"
                 }
             ]
         }

@@ -7,6 +7,7 @@ const bot = new Telegraf(config.token);
 if (isProdEnv)
     bot.launch();
 
+//TODO use chain-registry mintscan masks
 const notifyMsgSend = async (from, to, denom, amount, txhash, network) => {
     await notify(`💲 #transfer 💲\nAddress ${shortAddress(from)} ` +
         `sent ${amount} ${denom} to ${shortAddress(to)}. \n` +
