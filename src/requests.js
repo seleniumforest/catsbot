@@ -100,11 +100,13 @@ const getChainData = (network) => {
             let chainInfo = null;
 
             try {
-                chainInfo = yield axios.get(`${api}/${name}/chin.json`);
+                chainInfo = yield axios.get(`${api}/${name}/chain.json`);
             } catch (err) { }
 
-            chainInfo = chainInfo || chains.find(chain => chain.chain_name === name);
-            console.log(chainInfo.apis.rpc)
+            chainInfo = chainInfo || 
+                chains.find(chain => chain.chain_name === network.registryName || 
+                                     chain.chain_name === network.name);
+
             return yield {
                 endpoints: chainInfo.apis.rpc,
                 explorers: chainInfo.explorers

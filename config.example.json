@@ -9,6 +9,7 @@
     "networks": [
         {
             "name": "cosmos",
+            "registryName": "cosmoshub",
             "validatorsApi": "https://api.cosmostation.io/v1/staking/validators",
             "notifyDenoms": [
                 {
