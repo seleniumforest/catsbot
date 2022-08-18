@@ -52,12 +52,12 @@ const getRankedEndpoints = (endpoints) => {
     let totalRequests = [...enpointRankings.entries()]
         .reduce((prev, [_, v]) => prev + Math.abs(v), 0);
 
-    let ranked = [ ...endpoints ];
+    let ranked = [...endpoints];
 
-    if (totalRequests > minRequestsToRank) 
+    if (totalRequests > minRequestsToRank)
         ranked = ranked
             .filter(x => enpointRankings.get(x.address) > 0)
-    
+
     return _.shuffle(ranked);
 };
 

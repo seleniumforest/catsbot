@@ -7,6 +7,7 @@ const { chains } = require('chain-registry');
 const { writeStats } = require("./helpers");
 const { fromBase64 } = require("@cosmjs/encoding");
 const { Int53 } = require("@cosmjs/math");
+const moment = require("moment");
 
 const validatorsCache = new NodeCache({
     stdTTL: 60 * 60 * 12 //12 hours in seconds
@@ -46,15 +47,15 @@ function decodeTxResponse(data) {
     };
 }
 
-const getTxsInBlock = async (network, heightInfo) => {
-    for (const { address: rpc } of [{ address: heightInfo.rpc }, ...network.getEndpoints()]) {
+const getTxsInBlock = async (network, height) => {
+    for (const { address: rpc } of network.getEndpoints()) {
         try {
             let allTxs = []
             let totalTxs;
             let page = 1;
 
             do {
-                let url = `${rpc}/tx_search?query="tx.height%3D${heightInfo.height}"&page=${page++}`
+                let url = `${rpc}/tx_search?query="tx.height%3D${height}"&page=${page++}`
                 let { data: { result: { txs: pageTxs, total_count } } } = await axios({
                     method: "GET",
                     url,
@@ -64,15 +65,19 @@ const getTxsInBlock = async (network, heightInfo) => {
                 totalTxs = parseInt(total_count);
                 writeStats(rpc, true);
                 allTxs.push(...pageTxs);
-            } while (allTxs.length < totalTxs)
+            }
+            while (allTxs.length < totalTxs)
 
             let result = allTxs.map(decodeTxResponse);
-            return result;
+            if (result.length !== 0)
+                return result;
         } catch (err) {
-            console.log(`Error fetching txs in ${network.name}/${heightInfo.height} rpc ${rpc} error : ${JSON.stringify(err)}`);
+            console.log(`Error fetching txs in ${network.name}/${height} rpc ${rpc} error : ${JSON.stringify(err)}`);
             writeStats(rpc, false);
         }
     }
+
+    return [];
 }
 
 const getNewHeight = async (network) => {
@@ -86,10 +91,7 @@ const getNewHeight = async (network) => {
             });
 
             writeStats(rpc, true);
-            return {
-                height: parseInt(data.result.sync_info.latest_block_height),
-                rpc
-            };
+            return parseInt(data.result.sync_info.latest_block_height)
         } catch (err) {
             console.log(`Error fetching height in ${network.name} rpc ${rpc} error : ${JSON.stringify(err)}`);
             writeStats(rpc, false);
@@ -112,8 +114,30 @@ const getChainData = (network) => {
                 chains.find(chain => chain.chain_name === network.registryName ||
                     chain.chain_name === network.name);
 
+            console.log("Checking rpcs availability");
+
+            let aliveRpcs = yield chainInfo.apis.rpc.map(rpc => {
+                return axios({
+                    method: "GET",
+                    url: `${rpc.address}/status`,
+                    timeout: 5000
+                }).then(response => {
+                    if (!response || response.status !== 200)
+                        return;
+
+                    let blockTime = Date.parse(response.data.result.sync_info.latest_block_time);
+                    let now = Date.now();
+                    if (Math.abs(now - blockTime) < 60000) {
+                        console.log(`${rpc.address} is alive, sync block ${response.data.result.sync_info.latest_block_height}`);
+                        return rpc;
+                    }
+
+                    console.log(`${rpc.address} is alive, but not synced`);
+                }).catch(() => console.log(`${rpc.address} is dead`));
+            });
+
             return yield {
-                endpoints: chainInfo.apis.rpc,
+                endpoints: aliveRpcs.filter(x => !!x),
                 explorers: chainInfo.explorers
             }
         }

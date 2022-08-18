@@ -12,7 +12,7 @@
                 "<node_internals>/**"
             ],
             "program": "${workspaceFolder}/src/index.js",
-            "args": [ "--network=cosmos", "--clean=true" ]
+            "args": [ "--network=evmos", "--clean=true" ]
         }
     ]
 }
