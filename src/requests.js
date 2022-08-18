@@ -46,19 +46,21 @@ function decodeTxResponse(data) {
     };
 }
 
-const getTxsInBlock = async (network, height) => {
-    for (const { address: rpc } of network.getEndpoints()) {
+const getTxsInBlock = async (network, heightInfo) => {
+    for (const { address: rpc } of [{ address: heightInfo.rpc }, ...network.getEndpoints()]) {
         try {
             let allTxs = []
             let totalTxs;
             let page = 1;
+
             do {
-                let url = `${rpc}/tx_search?query="tx.height%3D${height}"&page=${page++}`
-                let { data: { result : { txs : pageTxs, total_count } } } = await axios({
+                let url = `${rpc}/tx_search?query="tx.height%3D${heightInfo.height}"&page=${page++}`
+                let { data: { result: { txs: pageTxs, total_count } } } = await axios({
                     method: "GET",
                     url,
                     timeout: 5000
                 });
+
                 totalTxs = parseInt(total_count);
                 writeStats(rpc, true);
                 allTxs.push(...pageTxs);
@@ -67,7 +69,7 @@ const getTxsInBlock = async (network, height) => {
             let result = allTxs.map(decodeTxResponse);
             return result;
         } catch (err) {
-            console.log(`Error fetching txs in ${network.name}/${height} rpc ${rpc} error : ${JSON.stringify(err)}`);
+            console.log(`Error fetching txs in ${network.name}/${heightInfo.height} rpc ${rpc} error : ${JSON.stringify(err)}`);
             writeStats(rpc, false);
         }
     }
@@ -84,7 +86,10 @@ const getNewHeight = async (network) => {
             });
 
             writeStats(rpc, true);
-            return parseInt(data.result.sync_info.latest_block_height);
+            return {
+                height: parseInt(data.result.sync_info.latest_block_height),
+                rpc
+            };
         } catch (err) {
             console.log(`Error fetching height in ${network.name} rpc ${rpc} error : ${JSON.stringify(err)}`);
             writeStats(rpc, false);
@@ -103,9 +108,9 @@ const getChainData = (network) => {
                 chainInfo = yield axios.get(`${api}/${name}/chain.json`);
             } catch (err) { }
 
-            chainInfo = chainInfo.data || 
-                chains.find(chain => chain.chain_name === network.registryName || 
-                                     chain.chain_name === network.name);
+            chainInfo = chainInfo.data ||
+                chains.find(chain => chain.chain_name === network.registryName ||
+                    chain.chain_name === network.name);
 
             return yield {
                 endpoints: chainInfo.apis.rpc,

@@ -22,13 +22,13 @@ const processNewTx = async (network, newtx, height) => {
     }
 }
 
-const processNewHeight = async (network, height, skipTxs = []) => {
-    console.log(`${network.name}: recieved new block ${height}`);
-    await createEmptyBlock(network, height);
-    let txs = await getTxsInBlock(network, height);
+const processNewHeight = async (network, heightInfo) => {
+    console.log(`${network.name}: recieved new block ${heightInfo.height}`);
+    await createEmptyBlock(network, heightInfo.height);
+    let txs = await getTxsInBlock(network, heightInfo);
 
-    for (const tx of txs.filter(x => !skipTxs.includes(x.hash)))
-        await processNewTx(network, tx, height);
+    for (const tx of txs)
+        await processNewTx(network, tx, heightInfo.height);
 }
 
 const processNetwork = (network) => {
@@ -37,22 +37,22 @@ const processNetwork = (network) => {
     co(function* () {
         while (true) {
             let lastProcessedData = yield getLastProcessedTxs(network);
-            let newHeight = yield getNewHeight(network);
+            let newHeightInfo = yield getNewHeight(network);
 
             //if there's no db, init first block record
             if (!lastProcessedData || cleanMode) {
                 cleanMode = false;
-                yield processNewHeight(network, newHeight);
+                yield processNewHeight(network, newHeightInfo);
                 continue;
             }
 
             let fromBlockHeight = parseInt(lastProcessedData.height);
             //prevent spamming to node 
-            if (fromBlockHeight === newHeight)
+            if (fromBlockHeight === newHeightInfo.height)
                 yield new Promise(res => setTimeout(res, 500));
 
-            for (let block = fromBlockHeight + 1; block <= newHeight; block++) {
-                yield processNewHeight(network, block);
+            for (let height = fromBlockHeight + 1; height <= newHeightInfo.height; height++) {
+                yield processNewHeight(network, { height, rpc: newHeightInfo.rpc });
             }
         }
     });
@@ -68,12 +68,12 @@ co(function* () {
     for (let network of networks) {
         let chainData = yield getChainData(network);
 
-        processNetwork({ 
-            ...network, 
-            ...chainData, 
+        processNetwork({
+            ...network,
+            ...chainData,
             getEndpoints: function () {
                 return getRankedEndpoints(this.endpoints);
-            } 
+            }
         })
     }
 }).catch(err => console.log(err));
