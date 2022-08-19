@@ -1,4 +1,4 @@
-# catsbot
+# catsbot for Cosmos Cats https://t.me/cosmoscats
 
 ## Run script
 
