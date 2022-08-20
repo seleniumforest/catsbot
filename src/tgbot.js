@@ -9,25 +9,25 @@ if (isProdEnv)
 
 //TODO use chain-registry mintscan masks
 const notifyMsgSend = async (from, to, denom, amount, txhash, network) => {
-    await notify(`💲 #transfer 💲\nAddress ${shortAddress(from)} ` +
+    await notify(`💲 #transfer #${network} 💲\nAddress ${shortAddress(from)} ` +
         `sent ${amount} ${denom} to ${shortAddress(to)}. \n` +
         `<a href='https://www.mintscan.io/${network}/txs/${txhash}'>Tx link</a>`);
 }
 
 const notifyMsgDelegate = async (from, to, denom, amount, txhash, network) => {
-    await notify(`🐳 #delegation 🐳\nAddress ${shortAddress(from)} ` +
+    await notify(`🐳 #delegation #${network} 🐳\nAddress ${shortAddress(from)} ` +
         `delegated ${amount} ${denom} to ${to}. \n` +
         `<a href='https://www.mintscan.io/${network}/txs/${txhash}'>Tx link</a>`);
 }
 
 const notifyMsgUndelegate = async (delegator, validator, denom, amount, txhash, network) => {
-    await notify(`🦐 #undelegation 🦐\nAddress ${shortAddress(delegator)} ` +
+    await notify(`🦐 #undelegation #${network} 🦐\nAddress ${shortAddress(delegator)} ` +
         `undelegated ${amount} ${denom} from ${validator}. \n` +
         `<a href='https://www.mintscan.io/${network}/txs/${txhash}'>Tx link</a>`);
 }
 
 const notifyCw20Transfer = async (sender, reciever, denom, amount, txhash, network) => {
-    await notify(`💲 #tokentransfer 💲\nAddress ${shortAddress(sender)} ` +
+    await notify(`💲 #tokentransfer #${network} 💲\nAddress ${shortAddress(sender)} ` +
         `transferred ${amount} ${denom} tokens to ${shortAddress(reciever)}. \n` +
         `<a href='https://www.mintscan.io/${network}/txs/${txhash}'>TX link</a>`);
 }
