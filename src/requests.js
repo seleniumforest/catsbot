@@ -7,7 +7,6 @@ const { chains } = require('chain-registry');
 const { writeStats } = require("./helpers");
 const { fromBase64 } = require("@cosmjs/encoding");
 const { Int53 } = require("@cosmjs/math");
-const moment = require("moment");
 
 const validatorsCache = new NodeCache({
     stdTTL: 60 * 60 * 12 //12 hours in seconds
@@ -34,17 +33,9 @@ const getValidatorProfiles = async (network) => {
     }
 }
 
-function apiToSmallInt(input) {
+const apiToSmallInt = (input) => {
     const asInt = typeof input === "number" ? new Int53(input) : Int53.fromString(input);
     return asInt.toNumber();
-}
-
-function decodeTxResponse(data) {
-    return {
-        tx: fromBase64(data.tx),
-        code: apiToSmallInt(data.tx_result.code) ?? 0,
-        hash: data.hash
-    };
 }
 
 const getTxsInBlock = async (network, height) => {
@@ -68,7 +59,13 @@ const getTxsInBlock = async (network, height) => {
             }
             while (allTxs.length < totalTxs)
 
-            let result = allTxs.map(decodeTxResponse);
+            let result = allTxs.map(data => ({
+                tx: fromBase64(data.tx),
+                code: apiToSmallInt(data.tx_result.code) ?? 0,
+                events: data.tx_result.events,
+                hash: data.hash
+            }));
+
             if (result.length !== 0)
                 return result;
         } catch (err) {

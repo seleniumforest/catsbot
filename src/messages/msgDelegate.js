@@ -3,7 +3,7 @@ const { notifyMsgDelegate } = require("../tgbot");
 const Big = require('big.js');
 const { getValidatorProfiles } = require("../requests");
 
-const handleMsgDelegate = async (network, msg, txhash) => {
+const handleMsgDelegate = async (network, msg, tx) => {
     let decodedMsg = getDefaultRegistry().decode(msg);
     let delegation = decodedMsg.amount;
     let delegatedDenomConfig = network.notifyDenoms.find(x => x.denom && (x.denom === delegation.denom));
@@ -24,7 +24,7 @@ const handleMsgDelegate = async (network, msg, txhash) => {
         validatorName || shortAddress(validatorAddress),
         delegatedDenomConfig.ticker,
         fromBaseUnit(delegation?.amount, delegatedDenomConfig?.decimals),
-        txhash,
+        tx.hash,
         network.name);
 }
 

@@ -32,6 +32,12 @@ const notifyCw20Transfer = async (sender, reciever, denom, amount, txhash, netwo
         `<a href='https://www.mintscan.io/${network}/txs/${txhash}'>TX link</a>`);
 }
 
+const notifyOsmosisSwap = async (sender, inAmount, inTicker, outAmount, outTicker, txhash, network) => {
+    await notify(`💲 #osmosisswap #${network} 💲\nAddress ${shortAddress(sender)} ` +
+        `swapped ${inAmount} ${inTicker} tokens to ${outAmount} ${outTicker}. \n` +
+        `<a href='https://www.mintscan.io/${network}/txs/${txhash}'>TX link</a>`);
+}
+
 const notify = async (message) => {
     console.log(message);
     
@@ -49,5 +55,6 @@ module.exports = {
     notifyMsgSend,
     notifyMsgDelegate,
     notifyMsgUndelegate,
-    notifyCw20Transfer
+    notifyCw20Transfer,
+    notifyOsmosisSwap
 };

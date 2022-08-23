@@ -2,7 +2,7 @@ const { getDefaultRegistry, fromBaseUnit } = require("../helpers");
 const { notifyMsgSend } = require("../tgbot");
 const Big = require('big.js');
 
-const handleMsgSend = async (network, msg, txhash) => {
+const handleMsgSend = async (network, msg, tx) => {
     let decodedMsg = getDefaultRegistry().decode(msg);
     let transfers = decodedMsg.amount.filter((x) => network.notifyDenoms.map(d => d.denom).includes(x.denom));
     for (const tr of transfers) {
@@ -19,7 +19,7 @@ const handleMsgSend = async (network, msg, txhash) => {
             decodedMsg.toAddress?.toString(),
             transfferedDenomConfig.ticker,
             fromBaseUnit(tr?.amount, transfferedDenomConfig?.decimals),
-            txhash,
+            tx.hash,
             network.name);
     }
 }

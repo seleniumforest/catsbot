@@ -6,7 +6,7 @@ const log = require("../logger");
 
 const memoizedTokens = [];
 
-const handleMsgExecuteContract = async (network, msg, txhash) => {
+const handleMsgExecuteContract = async (network, msg, tx) => {
     let decodedMsg = getCosmwasmRegistry().decode(msg);
     let decodedExecuteContractMsg = JSON.parse(new TextDecoder().decode(decodedMsg.msg));
     let tokenConfig = network.notifyDenoms.find(x => x.contract === decodedMsg.contract);
@@ -26,7 +26,7 @@ const handleMsgExecuteContract = async (network, msg, txhash) => {
         decodedExecuteContractMsg.transfer.recipient,
         tokenInfo.symbol,
         fromBaseUnit(decodedExecuteContractMsg.transfer.amount, tokenInfo.decimals),
-        txhash,
+        tx.hash,
         network.name
     )
 }
