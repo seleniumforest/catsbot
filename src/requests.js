@@ -78,7 +78,8 @@ const getTxsInBlock = async (network, height) => {
 }
 
 const getNewHeight = async (network) => {
-    for (const { address: rpc } of network.getEndpoints()) {
+    let endpoints = network.getEndpoints();
+    for (const { address: rpc } of endpoints) {
         try {
             let url = `${rpc}/status`
             let { data } = await axios({
@@ -94,6 +95,8 @@ const getNewHeight = async (network) => {
             writeStats(rpc, false);
         }
     }
+
+    console.warn(`Couldn't get new height for network ${network.name} with endpoints set ${JSON.stringify(endpoints)}`);
 };
 
 const getChainData = (network) => {

@@ -68,8 +68,8 @@ co(function* () {
     for (let network of networks) {
         let chainData = yield getChainData(network);
         
-        if (!chainData.endpoints || chainData.endpoints?.length <= 0)
-            console.warn("No endpoints")
+        if (!chainData?.endpoints?.length || chainData.endpoints.length <= 0)
+            console.warn("No endpoints");
 
         processNetwork({
             ...network,
