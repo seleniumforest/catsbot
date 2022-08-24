@@ -25,7 +25,7 @@ const handleMsgDelegate = async (network, msg, tx) => {
         delegatedDenomConfig.ticker,
         fromBaseUnit(delegation?.amount, delegatedDenomConfig?.decimals),
         tx.hash,
-        network.name);
+        network);
 }
 
 module.exports = handleMsgDelegate

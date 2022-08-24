@@ -27,7 +27,7 @@ const handleMsgExecuteContract = async (network, msg, tx) => {
         tokenInfo.symbol,
         fromBaseUnit(decodedExecuteContractMsg.transfer.amount, tokenInfo.decimals),
         tx.hash,
-        network.name
+        network
     )
 }
 

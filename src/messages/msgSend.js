@@ -20,7 +20,7 @@ const handleMsgSend = async (network, msg, tx) => {
             transfferedDenomConfig.ticker,
             fromBaseUnit(tr?.amount, transfferedDenomConfig?.decimals),
             tx.hash,
-            network.name);
+            network);
     }
 }
 

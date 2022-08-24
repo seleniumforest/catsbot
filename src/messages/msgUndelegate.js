@@ -25,7 +25,7 @@ const handleMsgUndelegate = async (network, msg, txhash) => {
         undelegatedDenomConfig.ticker,
         fromBaseUnit(undelegation?.amount, undelegatedDenomConfig?.decimals),
         txhash,
-        network.name);
+        network);
 }
 
 module.exports = handleMsgUndelegate

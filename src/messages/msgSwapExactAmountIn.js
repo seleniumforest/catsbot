@@ -43,7 +43,7 @@ const handleMsgSwapExactAmountIn = async (network, msg, tx) => {
         fromBaseUnit(outAmount, outTokenDecimals),
         outTicker,
         tx.hash,
-        network.name
+        network
     );
 }
 

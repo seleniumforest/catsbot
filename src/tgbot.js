@@ -9,33 +9,44 @@ if (isProdEnv)
 
 //TODO use chain-registry mintscan masks
 const notifyMsgSend = async (from, to, denom, amount, txhash, network) => {
-    await notify(`💲 #transfer #${network} 💲\nAddress ${shortAddress(from)} ` +
+    await notify(`💲 #transfer #${network.name} 💲\nAddress ${shortAddress(from)} ` +
         `sent ${amount} ${denom} to ${shortAddress(to)}. \n` +
-        `<a href='https://www.mintscan.io/${network}/txs/${txhash}'>Tx link</a>`);
+        `${getExplorerUrl(network, txhash)}`);
 }
 
 const notifyMsgDelegate = async (from, to, denom, amount, txhash, network) => {
-    await notify(`🐳 #delegation #${network} 🐳\nAddress ${shortAddress(from)} ` +
+    await notify(`🐳 #delegation #${network.name} 🐳\nAddress ${shortAddress(from)} ` +
         `delegated ${amount} ${denom} to ${to}. \n` +
-        `<a href='https://www.mintscan.io/${network}/txs/${txhash}'>Tx link</a>`);
+        `${getExplorerUrl(network, txhash)}`);
 }
 
 const notifyMsgUndelegate = async (delegator, validator, denom, amount, txhash, network) => {
-    await notify(`🦐 #undelegation #${network} 🦐\nAddress ${shortAddress(delegator)} ` +
+    await notify(`🦐 #undelegation #${network.name} 🦐\nAddress ${shortAddress(delegator)} ` +
         `undelegated ${amount} ${denom} from ${validator}. \n` +
-        `<a href='https://www.mintscan.io/${network}/txs/${txhash}'>Tx link</a>`);
+        `${getExplorerUrl(network, txhash)}`);
 }
 
 const notifyCw20Transfer = async (sender, reciever, denom, amount, txhash, network) => {
-    await notify(`💲 #tokentransfer #${network} 💲\nAddress ${shortAddress(sender)} ` +
+    await notify(`💲 #tokentransfer #${network.name} 💲\nAddress ${shortAddress(sender)} ` +
         `transferred ${amount} ${denom} tokens to ${shortAddress(reciever)}. \n` +
-        `<a href='https://www.mintscan.io/${network}/txs/${txhash}'>TX link</a>`);
+        `${getExplorerUrl(network, txhash)}`);
 }
 
 const notifyOsmosisSwap = async (sender, inAmount, inTicker, outAmount, outTicker, txhash, network) => {
-    await notify(`💲 #osmosisswap #${network} 💲\nAddress ${shortAddress(sender)} ` +
+    await notify(`💲 #osmosisswap #${network.name} 💲\nAddress ${shortAddress(sender)} ` +
         `swapped ${inAmount} ${inTicker} tokens to ${outAmount} ${outTicker}. \n` +
-        `<a href='https://www.mintscan.io/${network}/txs/${txhash}'>TX link</a>`);
+        `${getExplorerUrl(network, txhash)}`);
+}
+
+const getExplorerUrl = (network, txhash) => {
+    if (!network.explorers || network.explorers === []) {
+        console.warn(`no explorers found for network ${network.name}`);
+        return `TX Hash: ${txhash}`;
+    }
+
+    let explorer = network.explorers.find(x => x.kind === "mintscan") || 
+                    network.explorers[0]; 
+    return `<a href='${explorer.tx_page.replace("${txHash}", txhash)}'>TX link</a>`;
 }
 
 const notify = async (message) => {
