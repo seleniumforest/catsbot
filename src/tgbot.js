@@ -8,32 +8,32 @@ if (isProdEnv)
     bot.launch();
 
 //TODO use chain-registry mintscan masks
-const notifyMsgSend = async (from, to, denom, amount, txhash, network) => {
+const notifyMsgSend = async (from, to, ticker, amount, txhash, network) => {
     await notify(`💲 #transfer #${network.name} 💲\nAddress ${shortAddress(from)} ` +
-        `sent ${amount} ${denom} to ${shortAddress(to)}. \n` +
+        `sent ${amount} ${ticker} to ${shortAddress(to)}. \n` +
         `${getExplorerUrl(network, txhash)}`);
 }
 
-const notifyMsgDelegate = async (from, to, denom, amount, txhash, network) => {
+const notifyMsgDelegate = async (from, to, ticker, amount, txhash, network) => {
     await notify(`🐳 #delegation #${network.name} 🐳\nAddress ${shortAddress(from)} ` +
-        `delegated ${amount} ${denom} to ${to}. \n` +
+        `delegated ${amount} ${ticker} to ${to}. \n` +
         `${getExplorerUrl(network, txhash)}`);
 }
 
-const notifyMsgUndelegate = async (delegator, validator, denom, amount, txhash, network) => {
+const notifyMsgUndelegate = async (delegator, validator, ticker, amount, txhash, network) => {
     await notify(`🦐 #undelegation #${network.name} 🦐\nAddress ${shortAddress(delegator)} ` +
-        `undelegated ${amount} ${denom} from ${validator}. \n` +
+        `undelegated ${amount} ${ticker} from ${validator}. \n` +
         `${getExplorerUrl(network, txhash)}`);
 }
 
-const notifyCw20Transfer = async (sender, reciever, denom, amount, txhash, network) => {
+const notifyCw20Transfer = async (sender, reciever, ticker, amount, txhash, network) => {
     await notify(`💲 #tokentransfer #${network.name} 💲\nAddress ${shortAddress(sender)} ` +
-        `transferred ${amount} ${denom} tokens to ${shortAddress(reciever)}. \n` +
+        `transferred ${amount} ${ticker} tokens to ${shortAddress(reciever)}. \n` +
         `${getExplorerUrl(network, txhash)}`);
 }
 
 const notifyOsmosisSwap = async (sender, inAmount, inTicker, outAmount, outTicker, txhash, network) => {
-    await notify(`💲 #osmosisswap #${network.name} 💲\nAddress ${shortAddress(sender)} ` +
+    await notify(`🔄 #osmosisswap #${network.name} 🔄\nAddress ${shortAddress(sender)} ` +
         `swapped ${inAmount} ${inTicker} tokens to ${outAmount} ${outTicker}. \n` +
         `${getExplorerUrl(network, txhash)}`);
 }

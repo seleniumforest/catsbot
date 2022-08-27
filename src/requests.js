@@ -7,7 +7,9 @@ const { chains } = require('chain-registry');
 const { writeStats } = require("./helpers");
 const { fromBase64 } = require("@cosmjs/encoding");
 const { Int53 } = require("@cosmjs/math");
+const { CosmWasmClient } = require("@cosmjs/cosmwasm-stargate");
 
+const memoizedTokens = [];
 const validatorsCache = new NodeCache({
     stdTTL: 60 * 60 * 12 //12 hours in seconds
 });
@@ -144,9 +146,28 @@ const getChainData = (network) => {
     })
 };
 
+const getCw20TokenInfo = async (network, contract) => {
+    if (memoizedTokens[contract])
+        return memoizedTokens[contract];
+        
+    for (const { address: rpc } of network.getEndpoints()) {
+        try {
+            let client = await CosmWasmClient.connect(rpc);
+            let info = await client.queryContractSmart(contract, { "token_info": {} });
+
+            memoizedTokens[contract] = info;
+            return info;
+        }
+        catch (err) {
+            log.error("failed to fetch cw20 token info " + JSON.stringify(err));
+        }
+    }
+}
+
 module.exports = {
     getValidatorProfiles,
     getTxsInBlock,
     getNewHeight,
-    getChainData
+    getChainData,
+    getCw20TokenInfo
 }

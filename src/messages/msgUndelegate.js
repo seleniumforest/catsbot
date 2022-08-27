@@ -3,14 +3,20 @@ const { notifyMsgUndelegate } = require("../tgbot");
 const Big = require('big.js');
 const { getValidatorProfiles } = require("../requests");
 
-const handleMsgUndelegate = async (network, msg, txhash) => {
+const handleMsgUndelegate = async (network, msg, tx) => {
     let decodedMsg = getDefaultRegistry().decode(msg);
     let undelegation = decodedMsg.amount;
-    let undelegatedDenomConfig = network.notifyDenoms.find(x => x.denom && (x.denom === undelegation.denom));
-    if (!undelegation?.amount || !undelegatedDenomConfig?.amount)
+    let undelegatedDenomConfig =
+        network.notifyDenoms.find(x => x.denom && (x.denom === undelegation.denom));
+
+    let amountThreshhold =
+        undelegatedDenomConfig?.msgAmounts?.["msgUndelegate"] ||
+        undelegatedDenomConfig?.amount;
+
+    if (!undelegation?.amount || !amountThreshhold)
         return;
 
-    if (new Big(undelegation?.amount).lt(new Big(undelegatedDenomConfig?.amount)))
+    if (new Big(undelegation?.amount).lt(new Big(amountThreshhold)))
         return;
 
     let validatorProfiles =
@@ -24,7 +30,7 @@ const handleMsgUndelegate = async (network, msg, txhash) => {
         validatorName || shortAddress(validatorAddress),
         undelegatedDenomConfig.ticker,
         fromBaseUnit(undelegation?.amount, undelegatedDenomConfig?.decimals),
-        txhash,
+        tx.hash,
         network);
 }
 

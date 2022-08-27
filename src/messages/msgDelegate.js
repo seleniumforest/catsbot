@@ -6,11 +6,15 @@ const { getValidatorProfiles } = require("../requests");
 const handleMsgDelegate = async (network, msg, tx) => {
     let decodedMsg = getDefaultRegistry().decode(msg);
     let delegation = decodedMsg.amount;
-    let delegatedDenomConfig = network.notifyDenoms.find(x => x.denom && (x.denom === delegation.denom));
-    if (!delegation?.amount || !delegatedDenomConfig?.amount)
+    let delegatedDenomConfig = 
+        network.notifyDenoms.find(x => x.denom && (x.denom === delegation.denom));
+    let amountThreshhold = 
+        delegatedDenomConfig?.msgAmounts?.["msgDelegate"] || delegatedDenomConfig?.amount;
+
+    if (!delegation?.amount || !amountThreshhold)
         return;
 
-    if (new Big(delegation?.amount).lt(new Big(delegatedDenomConfig?.amount)))
+    if (new Big(delegation?.amount).lt(new Big(amountThreshhold)))
         return;
 
     let validatorProfiles =

@@ -1,15 +1,16 @@
 const { getCosmwasmRegistry, fromBaseUnit } = require("../helpers");
 const { notifyCw20Transfer } = require("../tgbot");
 const Big = require('big.js');
-const { CosmWasmClient } = require("@cosmjs/cosmwasm-stargate");
-const log = require("../logger");
-
-const memoizedTokens = [];
+const { getCw20TokenInfo } = require("../requests");
 
 const handleMsgExecuteContract = async (network, msg, tx) => {
     let decodedMsg = getCosmwasmRegistry().decode(msg);
     let decodedExecuteContractMsg = JSON.parse(new TextDecoder().decode(decodedMsg.msg));
     let tokenConfig = network.notifyDenoms.find(x => x.contract === decodedMsg.contract);
+
+    let amountThreshhold = 
+        tokenConfig?.msgAmounts?.["msgExecuteContract"] || tokenConfig?.amount;
+
     let isTransferMsg = isCw20TransferMsg(decodedExecuteContractMsg);
     if (!isTransferMsg || !tokenConfig)
         return;
@@ -18,7 +19,7 @@ const handleMsgExecuteContract = async (network, msg, tx) => {
     if (!tokenInfo)
         return;
 
-    if (new Big(decodedExecuteContractMsg.transfer.amount).lt(new Big(tokenConfig.amount)))
+    if (new Big(decodedExecuteContractMsg.transfer.amount).lt(new Big(amountThreshhold)))
         return;
 
     await notifyCw20Transfer(
@@ -29,24 +30,6 @@ const handleMsgExecuteContract = async (network, msg, tx) => {
         tx.hash,
         network
     )
-}
-
-const getCw20TokenInfo = async (network, contract) => {
-    if (memoizedTokens[contract])
-        return memoizedTokens[contract];
-        
-    for (const { address: rpc } of network.getEndpoints()) {
-        try {
-            let client = await CosmWasmClient.connect(rpc);
-            let info = await client.queryContractSmart(contract, { "token_info": {} });
-
-            memoizedTokens[contract] = info;
-            return info;
-        }
-        catch (err) {
-            log.error("failed to fetch cw20 token info " + JSON.stringify(err));
-        }
-    }
 }
 
 const isCw20TransferMsg = (msg) => {
