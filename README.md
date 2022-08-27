@@ -18,6 +18,25 @@
 }
 
 ```
+
+
+1.1 - You can assign custom amount for each denom by adding 
+
+```
+"msgAmounts": {
+    "msgSwapExactAmountIn": 1000000000000000
+}
+```
+        
+        
+Supported msg types
+
+        - msgSwapExactAmountIn
+        - msgDelegate    
+        - msgExecuteContract      
+        - msgSend     
+        - msgUndelegate
+
  
 2. Run ``` pm2 start ecosystem.config.js ``` to run script on all networks
   - If you want to start solo network, please add arg with name specified in config 
@@ -40,7 +59,8 @@
 
 ## Roadmap
 
-- [ ] Osmosis whale swaps
+- [x] Osmosis whale swaps
+- [Testing] Custom amounts for each message on each denom
 - [ ] Show Prices in USD
 - [ ] Add Secret network
 - [ ] Add IBC-txs
