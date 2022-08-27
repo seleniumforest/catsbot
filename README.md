@@ -1,4 +1,8 @@
-# catsbot for Cosmos Cats https://t.me/cosmoscats
+# catsbot for Cosmos Cats
+
+Cosmos cats community https://t.me/cosmoscats
+
+Deployed version https://t.me/cosmos_whalecat
 
 ## Run script
 
