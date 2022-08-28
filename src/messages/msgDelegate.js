@@ -18,7 +18,7 @@ const handleMsgDelegate = async (network, msg, tx) => {
         return;
 
     let validatorProfiles =
-        await getValidatorProfiles(network);
+        await getValidatorProfiles(network.name);
     let validatorAddress = decodedMsg.validatorAddress?.toString();
     let validatorName = validatorProfiles
         .find(x => x.operator_address === validatorAddress)?.moniker;

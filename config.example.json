@@ -15,7 +15,10 @@
                 {
                     "denom": "uatom",
                     "ticker": "ATOM",
-                    "amount": 10000000000
+                    "amount": 10000000000,
+                    "msgAmounts": {
+                        "msgSwapExactAmountIn": 1000000000000000
+                    }
                 }
             ]
         },

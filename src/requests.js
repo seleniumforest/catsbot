@@ -2,9 +2,8 @@ const axios = require("axios");
 const { co } = require("co");
 const NodeCache = require("node-cache");
 const config = require("../config.json");
-const log = require("./logger");
 const { chains } = require('chain-registry');
-const { writeStats } = require("./helpers");
+const { reportStats, getEndpoints } = require("./endpoints");
 const { fromBase64 } = require("@cosmjs/encoding");
 const { Int53 } = require("@cosmjs/math");
 const { CosmWasmClient } = require("@cosmjs/cosmwasm-stargate");
@@ -14,23 +13,23 @@ const validatorsCache = new NodeCache({
     stdTTL: 60 * 60 * 12 //12 hours in seconds
 });
 
-const getValidatorProfiles = async (network) => {
-    let cached = validatorsCache.get(network.name);
+const getValidatorProfiles = async (networkName, validatorsApi) => {
+    let cached = validatorsCache.get(networkName);
     if (cached)
         return cached;
 
     try {
-        let profiles = await axios.get(network.validatorsApi, {
+        let profiles = await axios.get(validatorsApi, {
             headers: {
                 "Origin": "https://www.mintscan.io",
                 "Referer": "https://www.mintscan.io/"
             }
         });
-        validatorsCache.set(network.name, profiles.data);
+        validatorsCache.set(networkName, profiles.data);
         return profiles.data;
     }
     catch (err) {
-        log.error("failed to fetch validators " + JSON.stringify(err));
+        console.log("failed to fetch validators " + JSON.stringify(err));
         return [];
     }
 }
@@ -40,8 +39,8 @@ const apiToSmallInt = (input) => {
     return asInt.toNumber();
 }
 
-const getTxsInBlock = async (network, height) => {
-    for (const { address: rpc } of network.getEndpoints()) {
+const getTxsInBlock = async (networkName, height) => {
+    for (const { address: rpc } of getEndpoints(networkName)) {
         try {
             let allTxs = []
             let totalTxs;
@@ -56,7 +55,7 @@ const getTxsInBlock = async (network, height) => {
                 });
 
                 totalTxs = parseInt(total_count);
-                writeStats(rpc, true);
+                reportStats(networkName, rpc, true);
                 allTxs.push(...pageTxs);
             }
             while (allTxs.length < totalTxs)
@@ -71,16 +70,16 @@ const getTxsInBlock = async (network, height) => {
             if (result.length !== 0)
                 return result;
         } catch (err) {
-            console.log(`Error fetching txs in ${network.name}/${height} rpc ${rpc} error : ${JSON.stringify(err)}`);
-            writeStats(rpc, false);
+            console.log(`Error fetching txs in ${networkName}/${height} rpc ${rpc} error : ${JSON.stringify(err)}`);
+            reportStats(networkName, rpc, false);
         }
     }
 
     return [];
 }
 
-const getNewHeight = async (network) => {
-    let endpoints = network.getEndpoints();
+const getNewHeight = async ({ name: networkName }) => {
+    let endpoints = getEndpoints(networkName);
     for (const { address: rpc } of endpoints) {
         try {
             let url = `${rpc}/status`
@@ -90,15 +89,15 @@ const getNewHeight = async (network) => {
                 timeout: 5000
             });
 
-            writeStats(rpc, true);
+            reportStats(networkName, rpc, true);
             return parseInt(data.result.sync_info.latest_block_height)
         } catch (err) {
-            console.log(`Error fetching height in ${network.name} rpc ${rpc} error : ${JSON.stringify(err)}`);
-            writeStats(rpc, false);
+            console.log(`Error fetching height in ${networkName} rpc ${rpc} error : ${JSON.stringify(err)}`);
+            reportStats(networkName, rpc, false);
         }
     }
 
-    console.warn(`Couldn't get new height for network ${network.name} with endpoints set ${JSON.stringify(endpoints)}`);
+    console.warn(`Couldn't get new height for network ${networkName} with endpoints set ${JSON.stringify(endpoints)}`);
 };
 
 const getChainData = (network) => {
@@ -150,7 +149,7 @@ const getCw20TokenInfo = async (network, contract) => {
     if (memoizedTokens[contract])
         return memoizedTokens[contract];
         
-    for (const { address: rpc } of network.getEndpoints()) {
+    for (const { address: rpc } of getEndpoints(network.name)) {
         try {
             let client = await CosmWasmClient.connect(rpc);
             let info = await client.queryContractSmart(contract, { "token_info": {} });
@@ -159,7 +158,7 @@ const getCw20TokenInfo = async (network, contract) => {
             return info;
         }
         catch (err) {
-            log.error("failed to fetch cw20 token info " + JSON.stringify(err));
+            console.log("failed to fetch cw20 token info " + JSON.stringify(err));
         }
     }
 }
