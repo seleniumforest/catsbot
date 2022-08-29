@@ -8,7 +8,7 @@ const { fromBase64 } = require("@cosmjs/encoding");
 const { Int53 } = require("@cosmjs/math");
 const { CosmWasmClient } = require("@cosmjs/cosmwasm-stargate");
 
-const memoizedTokens = [];
+const tokensCache = new NodeCache();
 const validatorsCache = new NodeCache({
     stdTTL: 60 * 60 * 12 //12 hours in seconds
 });
@@ -17,6 +17,9 @@ const getValidatorProfiles = async (networkName, validatorsApi) => {
     let cached = validatorsCache.get(networkName);
     if (cached)
         return cached;
+
+    if (!validatorsApi)
+        return [];
 
     try {
         let profiles = await axios.get(validatorsApi, {
@@ -146,15 +149,16 @@ const getChainData = (network) => {
 };
 
 const getCw20TokenInfo = async (network, contract) => {
-    if (memoizedTokens[contract])
-        return memoizedTokens[contract];
+    if (tokensCache.has(contract)) {
+        return tokensCache.get(contract);
+    }
         
     for (const { address: rpc } of getEndpoints(network.name)) {
         try {
             let client = await CosmWasmClient.connect(rpc);
             let info = await client.queryContractSmart(contract, { "token_info": {} });
 
-            memoizedTokens[contract] = info;
+            tokensCache.set(contract, info);
             return info;
         }
         catch (err) {
