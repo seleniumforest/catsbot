@@ -1,9 +1,10 @@
-const { fromBaseUnit, getOsmosisRegistry, shortAddress, fromBase64 } = require("../helpers");
+const { fromBaseUnit, getOsmosisRegistry, shortAddress, fromBase64, getDenomConfig } = require("../helpers");
 const { notifyOsmosisSwap } = require("../tgbot");
 const Big = require('big.js');
 const { default: axios } = require("axios");
 const assetlist = require("../osmosis_assetlist.json").assets;
 const config = require("../../config.json");
+const msgTrigger = "msgSwapExactAmountIn";
 
 const handleMsgSwapExactAmountIn = async (network, msg, tx) => {
     let decodedMsg = getOsmosisRegistry().decode(msg);
@@ -22,16 +23,11 @@ const handleMsgSwapExactAmountIn = async (network, msg, tx) => {
         return;
 
     let allNotifyDenoms = config.networks.flatMap(x => x.notifyDenoms);
-    
     let inTickerMatch = allNotifyDenoms.find(x => x.ticker === inTicker);
-    let inAmountThreshhold =
-        inTickerMatch?.msgAmounts?.["msgSwapExactAmountIn"] ||
-        inTickerMatch?.amount;
-
     let outTickerMatch = allNotifyDenoms.find(x => x.ticker === outTicker);
-    let outAmountThreshhold =
-        outTickerMatch?.msgAmounts?.["msgSwapExactAmountIn"] ||
-        outTickerMatch?.amount;
+
+    let inAmountThreshhold = getNotifyAmountThreshold(allNotifyDenoms, inTicker);
+    let outAmountThreshhold = getNotifyAmountThreshold(allNotifyDenoms, outTicker);
 
     if (inTickerMatch && new Big(inAmount).gte(new Big(inAmountThreshhold)) ||
         outTickerMatch && new Big(outAmount).gte(new Big(outAmountThreshhold)))
@@ -44,6 +40,11 @@ const handleMsgSwapExactAmountIn = async (network, msg, tx) => {
             tx.hash,
             network
         );
+}
+
+const getNotifyAmountThreshold = (allNotifyDenoms, ticker) => {
+    let inTickerMatch = allNotifyDenoms.find(x => x.ticker === ticker);
+    return inTickerMatch?.msgAmounts?.[msgTrigger] || inTickerMatch?.amount;
 }
 
 const parseSwapMsg = async (decodedMsg, tx) => {

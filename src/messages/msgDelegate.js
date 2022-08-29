@@ -1,33 +1,29 @@
-const { getDefaultRegistry, fromBaseUnit, shortAddress } = require("../helpers");
+const { getDefaultRegistry, fromBaseUnit, shortAddress, getDenomConfig, getValidatorMoniker } = require("../helpers");
 const { notifyMsgDelegate } = require("../tgbot");
 const Big = require('big.js');
-const { getValidatorProfiles } = require("../requests");
+const msgTrigger = "msgDelegate";
 
 const handleMsgDelegate = async (network, msg, tx) => {
     let decodedMsg = getDefaultRegistry().decode(msg);
     let delegation = decodedMsg.amount;
-    let delegatedDenomConfig = 
-        network.notifyDenoms.find(x => x.denom && (x.denom === delegation.denom));
-    let amountThreshhold = 
-        delegatedDenomConfig?.msgAmounts?.["msgDelegate"] || delegatedDenomConfig?.amount;
 
-    if (!delegation?.amount || !amountThreshhold)
+    let {
+        thresholdAmount,
+        ticker, 
+        decimals
+    } = getDenomConfig(network, delegation.denom, msgTrigger);
+
+    if (!delegation?.amount || !thresholdAmount)
         return;
 
-    if (new Big(delegation?.amount).lt(new Big(amountThreshhold)))
+    if (new Big(delegation?.amount).lt(new Big(thresholdAmount)))
         return;
-
-    let validatorProfiles =
-        await getValidatorProfiles(network.name);
-    let validatorAddress = decodedMsg.validatorAddress?.toString();
-    let validatorName = validatorProfiles
-        .find(x => x.operator_address === validatorAddress)?.moniker;
 
     await notifyMsgDelegate(
         decodedMsg.delegatorAddress?.toString(),
-        validatorName || shortAddress(validatorAddress),
-        delegatedDenomConfig.ticker,
-        fromBaseUnit(delegation?.amount, delegatedDenomConfig?.decimals),
+        await getValidatorMoniker(network, decodedMsg.validatorAddress),
+        ticker,
+        fromBaseUnit(delegation?.amount, decimals),
         tx.hash,
         network);
 }

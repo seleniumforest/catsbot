@@ -1,35 +1,33 @@
-const { getDefaultRegistry, fromBaseUnit, shortAddress } = require("../helpers");
+const {
+    getDefaultRegistry,
+    fromBaseUnit,
+    getValidatorMoniker,
+    getDenomConfig } = require("../helpers");
 const { notifyMsgUndelegate } = require("../tgbot");
 const Big = require('big.js');
-const { getValidatorProfiles } = require("../requests");
+const msgTrigger = "msgUndelegate";
 
 const handleMsgUndelegate = async (network, msg, tx) => {
     let decodedMsg = getDefaultRegistry().decode(msg);
     let undelegation = decodedMsg.amount;
-    let undelegatedDenomConfig =
-        network.notifyDenoms.find(x => x.denom && (x.denom === undelegation.denom));
 
-    let amountThreshhold =
-        undelegatedDenomConfig?.msgAmounts?.["msgUndelegate"] ||
-        undelegatedDenomConfig?.amount;
+    let {
+        thresholdAmount,
+        decimals,
+        ticker
+    } = getDenomConfig(network, undelegation.denom, msgTrigger);
 
-    if (!undelegation?.amount || !amountThreshhold)
+    if (!undelegation?.amount || !thresholdAmount)
         return;
 
-    if (new Big(undelegation?.amount).lt(new Big(amountThreshhold)))
+    if (new Big(undelegation.amount).lt(new Big(thresholdAmount)))
         return;
-
-    let validatorProfiles =
-        await getValidatorProfiles(network.name);
-    let validatorAddress = decodedMsg.validatorAddress?.toString();
-    let validatorName = validatorProfiles
-        .find(x => x.operator_address === validatorAddress)?.moniker;
 
     await notifyMsgUndelegate(
         decodedMsg.delegatorAddress?.toString(),
-        validatorName || shortAddress(validatorAddress),
-        undelegatedDenomConfig.ticker,
-        fromBaseUnit(undelegation?.amount, undelegatedDenomConfig?.decimals),
+        await getValidatorMoniker(network, decodedMsg.validatorAddress),
+        ticker,
+        fromBaseUnit(undelegation?.amount, decimals),
         tx.hash,
         network);
 }

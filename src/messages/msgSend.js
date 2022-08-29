@@ -1,6 +1,7 @@
-const { getDefaultRegistry, fromBaseUnit } = require("../helpers");
+const { getDefaultRegistry, fromBaseUnit, getDenomConfig } = require("../helpers");
 const { notifyMsgSend } = require("../tgbot");
 const Big = require('big.js');
+const msgTrigger = "msgSend";
 
 const handleMsgSend = async (network, msg, tx) => {
     let decodedMsg = getDefaultRegistry().decode(msg);
@@ -8,24 +9,24 @@ const handleMsgSend = async (network, msg, tx) => {
         .filter((x) => network.notifyDenoms.map(d => d.denom).includes(x.denom));
 
     for (const tr of transfers) {
-        let transfferedDenomConfig = 
-            network.notifyDenoms.find(x => x.denom && (x.denom === tr.denom));
+        let {
+            thresholdAmount,
+            ticker, 
+            decimals
+        } = getDenomConfig(network, tr.denom, msgTrigger);
 
-        let amountThreshhold = 
-            transfferedDenomConfig?.msgAmounts?.["msgSend"] || transfferedDenomConfig?.amount;
-
-        if (!tr?.amount || !amountThreshhold)
+        if (!tr?.amount || !thresholdAmount)
             return;
 
         //tr?.amount < transfferedDenomConfig?.amount using bigjs lib
-        if (new Big(tr?.amount).lt(new Big(amountThreshhold)))
+        if (new Big(tr?.amount).lt(new Big(thresholdAmount)))
             return;
 
         await notifyMsgSend(
             decodedMsg.fromAddress?.toString(),
             decodedMsg.toAddress?.toString(),
-            transfferedDenomConfig.ticker,
-            fromBaseUnit(tr?.amount, transfferedDenomConfig?.decimals),
+            ticker,
+            fromBaseUnit(tr?.amount, decimals),
             tx.hash,
             network);
     }

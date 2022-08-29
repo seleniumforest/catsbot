@@ -7,36 +7,40 @@ const bot = new Telegraf(config.token);
 if (isProdEnv)
     bot.launch();
 
-//TODO use chain-registry mintscan masks
-const notifyMsgSend = async (from, to, ticker, amount, txhash, network) => {
-    await notify(`💲 #transfer #${network.name} 💲\nAddress ${shortAddress(from)} ` +
-        `sent ${amount} ${ticker} to ${shortAddress(to)}. \n` +
-        `${getExplorerUrl(network, txhash)}`);
-}
+const notifyMsgSend =
+    async (from, to, ticker, amount, txhash, network) => {
+        await notify(`💲 #transfer #${network.name} 💲\nAddress ${shortAddress(from)} ` +
+            `sent ${amount} ${ticker} to ${shortAddress(to)}. \n` +
+            `${getExplorerUrl(network, txhash)}`);
+    }
 
-const notifyMsgDelegate = async (from, to, ticker, amount, txhash, network) => {
-    await notify(`🐳 #delegation #${network.name} 🐳\nAddress ${shortAddress(from)} ` +
-        `delegated ${amount} ${ticker} to ${to}. \n` +
-        `${getExplorerUrl(network, txhash)}`);
-}
+const notifyMsgDelegate =
+    async (from, to, ticker, amount, txhash, network) => {
+        await notify(`🐳 #delegation #${network.name} 🐳\nAddress ${shortAddress(from)} ` +
+            `delegated ${amount} ${ticker} to ${to}. \n` +
+            `${getExplorerUrl(network, txhash)}`);
+    }
 
-const notifyMsgUndelegate = async (delegator, validator, ticker, amount, txhash, network) => {
-    await notify(`🦐 #undelegation #${network.name} 🦐\nAddress ${shortAddress(delegator)} ` +
-        `undelegated ${amount} ${ticker} from ${validator}. \n` +
-        `${getExplorerUrl(network, txhash)}`);
-}
+const notifyMsgUndelegate =
+    async (delegator, validator, ticker, amount, txhash, network) => {
+        await notify(`🦐 #undelegation #${network.name} 🦐\nAddress ${shortAddress(delegator)} ` +
+            `undelegated ${amount} ${ticker} from ${validator}. \n` +
+            `${getExplorerUrl(network, txhash)}`);
+    }
 
-const notifyCw20Transfer = async (sender, reciever, ticker, amount, txhash, network) => {
-    await notify(`💲 #tokentransfer #${network.name} 💲\nAddress ${shortAddress(sender)} ` +
-        `transferred ${amount} ${ticker} tokens to ${shortAddress(reciever)}. \n` +
-        `${getExplorerUrl(network, txhash)}`);
-}
+const notifyCw20Transfer =
+    async (sender, reciever, ticker, amount, txhash, network) => {
+        await notify(`💲 #tokentransfer #${network.name} 💲\nAddress ${shortAddress(sender)} ` +
+            `transferred ${amount} ${ticker} tokens to ${shortAddress(reciever)}. \n` +
+            `${getExplorerUrl(network, txhash)}`);
+    }
 
-const notifyOsmosisSwap = async (sender, inAmount, inTicker, outAmount, outTicker, txhash, network) => {
-    await notify(`🔄 #osmosisswap #${network.name} 🔄\nAddress ${shortAddress(sender)} ` +
-        `swapped ${inAmount} ${inTicker} tokens to ${outAmount} ${outTicker}. \n` +
-        `${getExplorerUrl(network, txhash)}`);
-}
+const notifyOsmosisSwap =
+    async (sender, inAmount, inTicker, outAmount, outTicker, txhash, network) => {
+        await notify(`🔄 #osmosisswap #${network.name} 🔄\nAddress ${shortAddress(sender)} ` +
+            `swapped ${inAmount} ${inTicker} tokens to ${outAmount} ${outTicker}. \n` +
+            `${getExplorerUrl(network, txhash)}`);
+    }
 
 const getExplorerUrl = (network, txhash) => {
     if (!network.explorers || network.explorers === []) {
@@ -44,14 +48,14 @@ const getExplorerUrl = (network, txhash) => {
         return `TX Hash: ${txhash}`;
     }
 
-    let explorer = network.explorers.find(x => x.kind === "mintscan") || 
-                    network.explorers[0]; 
+    let explorer = network.explorers.find(x => x.kind === "mintscan") ||
+        network.explorers[0];
     return `<a href='${explorer.tx_page.replace("${txHash}", txhash)}'>TX link</a>`;
 }
 
 const notify = async (message) => {
     console.log(message);
-    
+
     if (isProdEnv)
         await bot.telegram.sendMessage(
             config.channel,
