@@ -3,8 +3,8 @@ const db = new AceBase('catsdb', { logLevel: "warn", storage: { path: "./" } });
 
 const dbReady = async () => await db.ready();
 
-const saveProcessedTx = async (network, height, txHash) => {
-    await db.ref(`${network.name}/block`)
+const saveProcessedTx = async (networkName, height, txHash) => {
+    await db.ref(`${networkName}/block`)
         .transaction(snapshot => {
             return {
                 height: height,
@@ -14,16 +14,16 @@ const saveProcessedTx = async (network, height, txHash) => {
         });
 }
 
-const createEmptyBlock = async (network, height) => {
-    await db.ref(`${network.name}/block`)
+const createEmptyBlock = async (networkName, height) => {
+    await db.ref(`${networkName}/block`)
         .transaction(() => ({
             height: height,
             txs: []
         }));
 }
 
-const getLastProcessedTxs = async (network) => {
-    let data = await db.ref(`${network.name}/block`)
+const getLastProcessedTxs = async (networkName) => {
+    let data = await db.ref(`${networkName}/block`)
         .get();
 
     return data.val();

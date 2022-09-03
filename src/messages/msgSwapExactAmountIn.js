@@ -114,7 +114,9 @@ const searchInfoByDenom = async (denom) => {
             ticker: symbol,
             decimals: exponent
         }
-    } catch (err) { }
+    } catch (err) {
+        console.log(`Cannot find denom ${denom} ${JSON.stringify(err?.message)}`)
+    }
 }
 
 module.exports = handleMsgSwapExactAmountIn;

@@ -1,8 +1,5 @@
 const axios = require("axios");
-const { co } = require("co");
 const NodeCache = require("node-cache");
-const config = require("../config.json");
-const { chains } = require('chain-registry');
 const { reportStats, getEndpoints } = require("./endpoints");
 const { fromBase64 } = require("@cosmjs/encoding");
 const { Int53 } = require("@cosmjs/math");
@@ -43,7 +40,8 @@ const apiToSmallInt = (input) => {
 }
 
 const getTxsInBlock = async (networkName, height) => {
-    for (const { address: rpc } of getEndpoints(networkName)) {
+    let endpoints = getEndpoints(networkName)
+    for (const { address: rpc } of endpoints) {
         try {
             let allTxs = []
             let totalTxs;
@@ -58,6 +56,7 @@ const getTxsInBlock = async (networkName, height) => {
                 });
 
                 totalTxs = parseInt(total_count);
+                //todo write fail if node returns empty txs list when it's not empty
                 reportStats(networkName, rpc, true);
                 allTxs.push(...pageTxs);
             }
@@ -73,7 +72,7 @@ const getTxsInBlock = async (networkName, height) => {
             if (result.length !== 0)
                 return result;
         } catch (err) {
-            console.log(`Error fetching txs in ${networkName}/${height} rpc ${rpc} error : ${JSON.stringify(err)}`);
+            console.log(`Error fetching txs in ${networkName}/${height} rpc ${rpc} error : ${err?.message}`);
             reportStats(networkName, rpc, false);
         }
     }
@@ -81,7 +80,7 @@ const getTxsInBlock = async (networkName, height) => {
     return [];
 }
 
-const getNewHeight = async ({ name: networkName }) => {
+const getNewHeight = async (networkName) => {
     let endpoints = getEndpoints(networkName);
     for (const { address: rpc } of endpoints) {
         try {
@@ -95,57 +94,12 @@ const getNewHeight = async ({ name: networkName }) => {
             reportStats(networkName, rpc, true);
             return parseInt(data.result.sync_info.latest_block_height)
         } catch (err) {
-            console.log(`Error fetching height in ${networkName} rpc ${rpc} error : ${JSON.stringify(err)}`);
+            console.log(`Error fetching height in ${networkName} rpc ${rpc} error : ${err?.message}`);
             reportStats(networkName, rpc, false);
         }
     }
 
     console.warn(`Couldn't get new height for network ${networkName} with endpoints set ${JSON.stringify(endpoints)}`);
-};
-
-const getChainData = (network) => {
-    return co(function* () {
-        let name = network.registryName || network.name;
-
-        for (let api of config.registryApis) {
-            let chainInfo = null;
-
-            try {
-                chainInfo = yield axios.get(`${api}/${name}/chain.json`);
-            } catch (err) { }
-
-            chainInfo = chainInfo.data ||
-                chains.find(chain => chain.chain_name === network.registryName ||
-                    chain.chain_name === network.name);
-
-            console.log("Checking rpcs availability");
-
-            let aliveRpcs = yield chainInfo.apis.rpc.map(rpc => {
-                return axios({
-                    method: "GET",
-                    url: `${rpc.address}/status`,
-                    timeout: 5000
-                }).then(response => {
-                    if (!response || response.status !== 200)
-                        return;
-
-                    let blockTime = Date.parse(response.data.result.sync_info.latest_block_time);
-                    let now = Date.now();
-                    if (Math.abs(now - blockTime) < 60000) {
-                        console.log(`${rpc.address} is alive, sync block ${response.data.result.sync_info.latest_block_height}`);
-                        return rpc;
-                    }
-
-                    console.log(`${rpc.address} is alive, but not synced`);
-                }).catch(() => console.log(`${rpc.address} is dead`));
-            });
-
-            return yield {
-                endpoints: aliveRpcs.filter(x => !!x),
-                explorers: chainInfo.explorers
-            }
-        }
-    })
 };
 
 const getCw20TokenInfo = async (network, contract) => {
@@ -171,6 +125,5 @@ module.exports = {
     getValidatorProfiles,
     getTxsInBlock,
     getNewHeight,
-    getChainData,
     getCw20TokenInfo
 }

@@ -1,51 +1,123 @@
-const _ = require('lodash');
-const minRequestsToRank = 100;
+const { default: axios } = require("axios");
+const { co } = require("co");
+const config = require("../config.json");
+const { chains } = require('chain-registry');
 
-let enpointRankings = new Map();
-let totalRequests = 0;
+const minRequestsToTest = 20;
+const minSuccessRate = 0.85;
+let endpointRankings = {};
 
-const registerEndpoint = (networkName, rpc) => {
-    let key = `${networkName}/${rpc}`;
-    enpointRankings.set(key, { points: 0, address: rpc });
+const registerNetwork = async (network) => {
+    let name = network.name;
+    let regName = network.registryName;
+    let chainData = await registerEndpoints(regName, name);
+
+    setTimeout(() => {
+        registerEndpoints(regName, name)
+    }, 1000 * 60 * 3600 * 12);
+
+    return chainData;
 }
+
+const registerEndpoints = async (regName, name) => {
+    let current = [...endpointRankings[name]?.entries() ?? []];
+    console.log(`endpoints for ${name}: ${JSON.stringify(current)}`);
+
+    let chainData = await getChainData(regName || name);
+    if (!chainData?.endpoints?.length || chainData.endpoints.length === 0) {
+        console.warn("No endpoints");
+        return;
+    }
+
+    endpointRankings[name] = new Map();
+    chainData.endpoints.forEach(end => {
+        let key = `${name}/${end.address}`;
+        endpointRankings[name].set(key, { ok: 0, fail: 0, address: end.address });
+    });
+
+    return chainData;
+}
+
+const getChainData = (registryName) => {
+    return co(function* () {
+        for (let api of config.registryApis) {
+            let chainInfo = null;
+
+            try {
+                chainInfo = yield axios.get(`${api}/${registryName}/chain.json`);
+            } catch (err) { }
+
+            chainInfo = chainInfo.data ||
+                chains.find(chain => chain.chain_name === registryName);
+
+            console.log(`Checking rpcs availability for ${registryName}`);
+
+            let aliveRpcs = yield chainInfo.apis.rpc.map(rpc => {
+                return axios({
+                    method: "GET",
+                    url: `${rpc.address}/status`,
+                    timeout: 5000
+                }).then(response => {
+                    if (!response || response.status !== 200)
+                        return;
+
+                    let blockTime = Date.parse(response.data.result.sync_info.latest_block_time);
+                    let now = Date.now();
+                    if (Math.abs(now - blockTime) < 60000) {
+                        console.log(`${rpc.address} is alive, sync block ${response.data.result.sync_info.latest_block_height}`);
+                        return rpc;
+                    }
+
+                    console.log(`${rpc.address} is alive, but not synced`);
+                }).catch(() => {
+                    console.log(`${rpc.address} is dead`);
+                    //todo make 2nd request
+                });
+            });
+
+            return yield {
+                endpoints: aliveRpcs.filter(x => !!x),
+                explorers: chainInfo.explorers
+            }
+        }
+    })
+};
 
 const reportStats = (networkName, rpc, result) => {
     let key = `${networkName}/${rpc}`;
-    let endp = enpointRankings.get(key);
-    totalRequests++;
-    enpointRankings.set(key, { points: result ? endp.points++ : endp.points--, ...endp });
+    let endp = endpointRankings[networkName].get(key);
+    endpointRankings[networkName].set(key, result ? { ...endp, ok: ++endp.ok } :
+        { ...endp, fail: ++endp.fail });
 }
 
-/*
-    Ranking Algo: 
-    1. Collect stats choosing random rpc from minRequestsToRank requiets.
-        Give them +1 point for succesful response or -1 point for error.
-        On this step we will return just shuffled array of rpcs.
-    2. When there's some stats collected, just filter those who
-        have negative rating and shuffle them for something 
-        like load-balancing.
-*/
 const getEndpoints = (networkName) => {
-    let ranked = [...enpointRankings.entries()]
-        .filter(([ key, value ]) => {
-            if (key.startsWith(networkName))
-                if (totalRequests < minRequestsToRank || value.points > 0)
-                    return true;
-                else
-                    return false;
+    let result = [...endpointRankings[networkName].entries()]
+        .filter(([k]) => k.startsWith(networkName))
+        .map(([_, value]) => value)
+        .sort((a, b) => a.ok + a.fail > b.ok + b.fail ? 1 : -1);
 
-            return false;
-        })
-        .map(([_, value]) => value);
+    let minRequests =
+        result.reduce((prev, cur) =>
+            prev > cur.ok + cur.fail ? cur.ok + cur.fail : prev, Number.POSITIVE_INFINITY);
 
-    if (!ranked?.length || ranked.length === 0)
-        console.warn(`No rpc presented for network ${networkName}`);
-    
-    return _.shuffle(ranked);
+    if (minRequests < minRequestsToTest)
+        return result;
+
+    return result
+        .filter(x => x.ok / (x.ok + x.fail) > minSuccessRate)
+        .sort((a, b) => {
+            if (a.ok / a.fail <= 1)
+                return 1;
+
+            if (b.ok / b.fail <= 1)
+                return -1;
+
+            return (a.ok / (a.fail || 1)) > (b.ok / (b.fail || 1)) ? 1 : 0;
+        });
 };
 
 module.exports = {
-    registerEndpoint,
     reportStats,
-    getEndpoints
+    getEndpoints,
+    registerNetwork
 }

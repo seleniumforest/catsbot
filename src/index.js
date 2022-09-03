@@ -4,7 +4,7 @@ const config = require("../config.json");
 const { saveProcessedTx, getLastProcessedTxs, dbReady, createEmptyBlock } = require("./db");
 const msgHandlers = require("./messages");
 const { getTxsInBlock, getNewHeight, getChainData } = require("./requests");
-const { registerEndpoint } = require("./endpoints");
+const { registerNetwork } = require("./endpoints");
 const args = require('yargs').argv;
 
 const processNewTx = async (network, newtx, height) => {
@@ -18,12 +18,12 @@ const processNewTx = async (network, newtx, height) => {
 
     for (const msg of msgs) {
         await msgHandlers[msg.typeUrl](network, msg, newtx);
-        await saveProcessedTx(network, height, newtx.hash);
+        await saveProcessedTx(network.name, height, newtx.hash);
     }
 }
 
 const processNewHeight = async (network, newHeight) => {
-    await createEmptyBlock(network, newHeight);
+    await createEmptyBlock(network.name, newHeight);
     let txs = await getTxsInBlock(network.name, newHeight);
     console.log(`${network.name}: recieved new block ${newHeight} with ${txs.length} txs`);
 
@@ -36,8 +36,8 @@ const processNetwork = (network) => {
 
     co(function* () {
         while (true) {
-            let lastProcessedData = yield getLastProcessedTxs(network);
-            let newHeight = yield getNewHeight(network);
+            let lastProcessedData = yield getLastProcessedTxs(network.name);
+            let newHeight = yield getNewHeight(network.name);
 
             //if there's no db, init first block record
             if (!lastProcessedData || cleanMode) {
@@ -47,10 +47,8 @@ const processNetwork = (network) => {
             }
 
             let fromBlockHeight = parseInt(lastProcessedData.height);
-            //prevent spamming to node 
-            if (fromBlockHeight === newHeight)
-                yield new Promise(res => setTimeout(res, 500));
 
+            yield new Promise(res => setTimeout(res, 1000));
             for (let height = fromBlockHeight + 1; height <= newHeight; height++) {
                 yield processNewHeight(network, height);
             }
@@ -66,13 +64,8 @@ co(function* () {
         config.networks;
 
     for (let network of networks) {
-        let chainData = yield getChainData(network);
+        let chainData = yield registerNetwork(network);
 
-        if (!chainData?.endpoints?.length || chainData.endpoints.length === 0)
-            console.warn("No endpoints");
-
-        chainData.endpoints.forEach(end => registerEndpoint(network.name, end.address));
-        
         processNetwork({
             ...network,
             ...chainData
