@@ -14,7 +14,7 @@ const registerNetwork = async (network) => {
 
     setTimeout(() => {
         registerEndpoints(regName, name)
-    }, 1000 * 60 * 3600 * (config?.rpcsTtl || 12));
+    }, 1000 * 60 * 60 * (config?.rpcsTtl || 12));
 
     return chainData;
 }
