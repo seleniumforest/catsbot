@@ -3,7 +3,7 @@ const { co } = require("co");
 const config = require("../config.json");
 const { saveProcessedTx, getLastProcessedTxs, dbReady, createEmptyBlock } = require("./db");
 const msgHandlers = require("./messages");
-const { getTxsInBlock, getNewHeight, getChainData } = require("./requests");
+const { getTxsInBlock, getNewHeight } = require("./requests");
 const { registerNetwork } = require("./endpoints");
 const args = require('yargs').argv;
 

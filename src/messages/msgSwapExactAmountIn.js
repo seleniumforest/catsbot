@@ -1,4 +1,4 @@
-const { fromBaseUnit, getOsmosisRegistry, shortAddress, fromBase64, getDenomConfig } = require("../helpers");
+const { fromBaseUnit, getOsmosisRegistry, fromBase64 } = require("../helpers");
 const { notifyOsmosisSwap } = require("../tgbot");
 const Big = require('big.js');
 const { default: axios } = require("axios");
@@ -87,7 +87,7 @@ const parseOutCoin = async (swappedCoin) => {
         outTicker: ticker,
         decimals,
         sourceDenom
-    }
+    }   
 }
 
 const searchInfoByDenom = async (denom) => {

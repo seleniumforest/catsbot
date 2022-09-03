@@ -64,7 +64,7 @@ Supported msg types
 ## Roadmap
 
 - [x] Osmosis whale swaps
-- [Testing] Custom amounts for each message on each denom
+- [x] Custom amounts for each message on each denom
 - [ ] Show Prices in USD
 - [ ] Add Secret network
 - [ ] Add IBC-txs

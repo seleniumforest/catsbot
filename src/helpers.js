@@ -2,7 +2,6 @@ const { wasmTypes } = require("@cosmjs/cosmwasm-stargate/build/modules");
 const { Registry } = require("@cosmjs/proto-signing");
 const { defaultRegistryTypes } = require("@cosmjs/stargate");
 const big = require("big.js");
-const _ = require('lodash');
 const osmojs = require("osmojs");
 const { getValidatorProfiles } = require("./requests");
 

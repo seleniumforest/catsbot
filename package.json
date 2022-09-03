@@ -11,17 +11,12 @@
     "@cosmjs/tendermint-rpc": "^0.28.11",
     "acebase": "^1.21.7",
     "axios": "^0.27.2",
-    "big": "^0.5.2",
     "big.js": "^6.2.1",
-    "bigjs": "^0.0.3",
     "chain-registry": "^0.6.3",
     "co": "^4.6.0",
-    "lodash": "^4.17.21",
     "node-cache": "^5.1.2",
     "osmojs": "^0.10.6",
-    "simple-node-logger": "^21.8.12",
     "telegraf": "^4.8.6",
-    "ws": "^8.8.1",
     "yargs": "^17.5.1"
   }
 }

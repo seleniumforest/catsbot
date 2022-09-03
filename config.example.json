@@ -2,6 +2,7 @@
     "env": "prod",
     "token": "1231231212:Qwertyuiopasdfghjkl;xcvbnm1234567890",
     "channel": "@username",
+    "rpcsTtl": 0.1,
     "registryApis": [
         "https://registry.ping.pub/",
         "https://proxy.atomscan.com/directory/"
@@ -48,6 +49,7 @@
                     "amount": 1000000000
                 },
                 {
+                    "ticker": "NETA",
                     "contract": "juno168ctmpyppk90d34p3jjy658zf5a5l3w8wk35wht6ccqj4mr0yv8s4j5awr",
                     "amount": 1000000
                 }
