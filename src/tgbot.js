@@ -42,6 +42,13 @@ const notifyOsmosisSwap =
             `${getExplorerUrl(network, txhash)}`);
     }
 
+const notifySifchainSwap =
+    async (sender, inAmount, inTicker, outAmount, outTicker, txhash, network) => {
+        await notify(`🔄 #sifchainswap #${network.name} 🔄\nAddress ${shortAddress(sender)} ` +
+            `swapped ${inAmount} ${inTicker} tokens to ${outAmount} ${outTicker}. \n` +
+            `${getExplorerUrl(network, txhash)}`);
+    }
+
 const getExplorerUrl = (network, txhash) => {
     if (!network.explorers || network.explorers === []) {
         console.warn(`no explorers found for network ${network.name}`);
@@ -50,6 +57,7 @@ const getExplorerUrl = (network, txhash) => {
 
     let explorer = network.explorers.find(x => x.kind === "mintscan") ||
         network.explorers[0];
+
     return `<a href='${explorer.tx_page.replace("${txHash}", txhash)}'>TX link</a>`;
 }
 
@@ -71,5 +79,6 @@ module.exports = {
     notifyMsgDelegate,
     notifyMsgUndelegate,
     notifyCw20Transfer,
-    notifyOsmosisSwap
+    notifyOsmosisSwap,
+    notifySifchainSwap
 };

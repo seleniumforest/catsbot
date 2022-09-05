@@ -4,6 +4,7 @@ const { defaultRegistryTypes } = require("@cosmjs/stargate");
 const big = require("big.js");
 const osmojs = require("osmojs");
 const { getValidatorProfiles } = require("./requests");
+const sifchainDecoder = require("../chain-specific/sifchain/tx")
 
 const fromBaseUnit = (amount, decimals = 6, fractionDigits = 2) => {
     if (!amount)
@@ -19,6 +20,13 @@ const getOsmosisRegistry = () => new Registry([
     [
         "/osmosis.gamm.v1beta1.MsgSwapExactAmountIn",
         osmojs.osmosis.gamm.v1beta1.MsgSwapExactAmountIn
+    ]
+]);
+
+const getSifchainRegistry = () => new Registry([
+    [
+        "/sifnode.clp.v1.MsgSwap",
+        sifchainDecoder.msgSwap
     ]
 ]);
 
@@ -62,5 +70,6 @@ module.exports = {
     getOsmosisRegistry,
     fromBase64,
     getValidatorMoniker,
-    getDenomConfig
+    getDenomConfig,
+    getSifchainRegistry
 }
