@@ -50,7 +50,7 @@ const processNetwork = (network) => {
 
             let fromBlockHeight = parseInt(lastProcessedData.height);
 
-            yield new Promise(res => setTimeout(res, 1000));
+            yield new Promise(res => setTimeout(res, 100));
             for (let height = fromBlockHeight + 1; height <= newHeight; height++) {
                 yield processNewHeight(network, height);
             }
