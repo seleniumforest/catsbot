@@ -6,11 +6,11 @@ const { assets } = require("../../chain-specific/sifchain/assets.json");
 const NodeCache = require("node-cache");
 const msgTrigger = "msgSifchainSwap";
 
-const handleMsgSifchainSwap = async (network, msg, tx) => {
+const handleMsgSifchainSwap = async (network, msg, tx, msgLog) => {
     let { sentAsset, receivedAsset, sentAmount, signer } = getSifchainRegistry().decode(msg);
-    let recievedAmount = fromBase64(tx.events
+    let recievedAmount = msgLog.events
         .find(x => x.type === "swap_successful")?.attributes
-        .find(x => fromBase64(x.key) === "swap_amount")?.value);
+        .find(x => x.key === "swap_amount")?.value;
     let allAssets = await fetchSifchainAssets();
 
     let sentAssetMatch = network.notifyDenoms.find(x => x.denom === sentAsset.symbol);

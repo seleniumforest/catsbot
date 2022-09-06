@@ -13,11 +13,13 @@ const processNewTx = async (network, newtx, height) => {
         return;
 
     let decodedTx = decodeTxRaw(newtx.tx);
-    let msgs = decodedTx.body.messages
-        .filter(msg => typeof msgHandlers[msg.typeUrl] === "function");
+    for (let i = 0; i < decodedTx.body.messages.length; i++) {
+        let msg = decodedTx.body.messages[i];
+        let msgLog = newtx?.log?.find(x => i === 0 ? !x.msg_index : x.msg_index === i);
+        if (typeof msgHandlers[msg.typeUrl] !== "function")
+            continue;
 
-    for (const msg of msgs) {
-        await msgHandlers[msg.typeUrl](network, msg, newtx);
+        await msgHandlers[msg.typeUrl](network, msg, newtx, msgLog);
         await saveProcessedTx(network.name, height, newtx.hash);
     }
 }

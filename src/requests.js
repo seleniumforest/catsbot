@@ -39,6 +39,12 @@ const apiToSmallInt = (input) => {
     return asInt.toNumber();
 }
 
+const tryParseJson = (data) => {
+    try {
+        return JSON.parse(data);
+    } catch (err) { }
+}
+
 const getTxsInBlock = async (networkName, height) => {
     let endpoints = getEndpoints(networkName)
     for (const { address: rpc } of endpoints) {
@@ -66,6 +72,7 @@ const getTxsInBlock = async (networkName, height) => {
                 tx: fromBase64(data.tx),
                 code: apiToSmallInt(data.tx_result.code) ?? 0,
                 events: data.tx_result.events,
+                log: tryParseJson(data?.tx_result?.log),
                 hash: data.hash
             }));
 
@@ -106,7 +113,7 @@ const getCw20TokenInfo = async (network, contract) => {
     if (tokensCache.has(contract)) {
         return tokensCache.get(contract);
     }
-        
+
     for (const { address: rpc } of getEndpoints(network.name)) {
         try {
             let client = await CosmWasmClient.connect(rpc);

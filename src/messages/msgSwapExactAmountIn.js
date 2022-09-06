@@ -2,7 +2,7 @@ const { fromBaseUnit, getOsmosisRegistry, fromBase64 } = require("../helpers");
 const { notifyOsmosisSwap } = require("../tgbot");
 const Big = require('big.js');
 const { default: axios } = require("axios");
-const assetlist = require("../../chain-specific/osmosis/osmosis_assetlist.json").assets;
+const assetlist = require("../../chain-specific/osmosis/assets.json").assets;
 const config = require("../../config.json");
 const msgTrigger = "msgSwapExactAmountIn";
 
