@@ -10,44 +10,51 @@ if (isProdEnv)
 const notifyMsgSend =
     async (from, to, ticker, amount, txhash, network) => {
         await notify(`💲 #transfer #${network.name} 💲\nAddress ${shortAddress(from)} ` +
-            `sent ${amount} ${ticker} to ${shortAddress(to)}. \n` +
+            `sent ${formatNum(amount)} ${ticker} to ${shortAddress(to)}. \n` +
             `${getExplorerUrl(network, txhash)}`);
     }
 
 const notifyMsgDelegate =
     async (from, to, ticker, amount, txhash, network) => {
         await notify(`🐳 #delegation #${network.name} 🐳\nAddress ${shortAddress(from)} ` +
-            `delegated ${amount} ${ticker} to ${to}. \n` +
+            `delegated ${formatNum(amount)} ${ticker} to ${to}. \n` +
             `${getExplorerUrl(network, txhash)}`);
     }
 
 const notifyMsgUndelegate =
     async (delegator, validator, ticker, amount, txhash, network) => {
         await notify(`🦐 #undelegation #${network.name} 🦐\nAddress ${shortAddress(delegator)} ` +
-            `undelegated ${amount} ${ticker} from ${validator}. \n` +
+            `undelegated ${formatNum(amount)} ${ticker} from ${validator}. \n` +
             `${getExplorerUrl(network, txhash)}`);
     }
 
 const notifyCw20Transfer =
     async (sender, reciever, ticker, amount, txhash, network) => {
         await notify(`💲 #tokentransfer #${network.name} 💲\nAddress ${shortAddress(sender)} ` +
-            `transferred ${amount} ${ticker} tokens to ${shortAddress(reciever)}. \n` +
+            `transferred ${formatNum(amount)} ${ticker} tokens to ${shortAddress(reciever)}. \n` +
             `${getExplorerUrl(network, txhash)}`);
     }
 
 const notifyOsmosisSwap =
     async (sender, inAmount, inTicker, outAmount, outTicker, txhash, network) => {
         await notify(`🔄 #osmosisswap #${network.name} 🔄\nAddress ${shortAddress(sender)} ` +
-            `swapped ${inAmount} ${inTicker} tokens to ${outAmount} ${outTicker}. \n` +
+            `swapped ${formatNum(inAmount)} ${inTicker} tokens to ${formatNum(outAmount)} ${outTicker}. \n` +
             `${getExplorerUrl(network, txhash)}`);
     }
 
 const notifySifchainSwap =
     async (sender, inAmount, inTicker, outAmount, outTicker, txhash, network) => {
         await notify(`🔄 #sifchainswap #${network.name} 🔄\nAddress ${shortAddress(sender)} ` +
-            `swapped ${inAmount} ${inTicker} tokens to ${outAmount} ${outTicker}. \n` +
+            `swapped ${formatNum(inAmount)} ${inTicker} tokens to ${formatNum(outAmount)} ${outTicker}. \n` +
             `${getExplorerUrl(network, txhash)}`);
     }
+
+const formatNum = (num) => {
+    if (typeof num === "string")
+        num = parseFloat(num);
+
+    return new Intl.NumberFormat().format(num.toFixed());
+}
 
 const getExplorerUrl = (network, txhash) => {
     if (!network.explorers || network.explorers === []) {
