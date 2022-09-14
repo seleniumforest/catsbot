@@ -13,15 +13,17 @@ const processNewTx = async (network, newtx, height) => {
         return;
 
     let decodedTx = decodeTxRaw(newtx.tx);
+    let msgJobs = [];
     for (let i = 0; i < decodedTx.body.messages.length; i++) {
         let msg = decodedTx.body.messages[i];
         let msgLog = newtx?.log?.find(x => i === 0 ? !x.msg_index : x.msg_index === i);
         if (typeof msgHandlers[msg.typeUrl] !== "function")
             continue;
 
-        await msgHandlers[msg.typeUrl](network, msg, newtx, msgLog);
-        await saveProcessedTx(network.name, height, newtx.hash);
+        msgJobs.push(msgHandlers[msg.typeUrl](network, msg, newtx, msgLog));
     }
+
+    await Promise.all(msgJobs);
 }
 
 const processNewHeight = async (network, newHeight) => {
@@ -29,8 +31,11 @@ const processNewHeight = async (network, newHeight) => {
     let txs = await getTxsInBlock(network.name, newHeight);
     console.log(`${network.name}: recieved new block ${newHeight} with ${txs.length} txs`);
 
+    let txJobs = [];
     for (const tx of txs)
-        await processNewTx(network, tx, newHeight);
+         txJobs.push(processNewTx(network, tx, newHeight));
+
+    await Promise.all(txJobs);
 }
 
 const processNetwork = (network) => {
@@ -39,7 +44,7 @@ const processNetwork = (network) => {
     co(function* () {
         while (true) {
             let lastProcessedData = yield getLastProcessedTxs(network.name);
-            let newHeight = yield getNewHeight(network.name);
+            let { newHeight, time } = yield getNewHeight(network.name);
 
             //if there's no db, init first block record
             if (!lastProcessedData || cleanMode) {
@@ -48,10 +53,10 @@ const processNetwork = (network) => {
                 continue;
             }
 
-            let fromBlockHeight = parseInt(lastProcessedData.height);
+            let latestProcessedHeight = parseInt(lastProcessedData.height);
 
             yield new Promise(res => setTimeout(res, 500));
-            for (let height = fromBlockHeight + 1; height <= newHeight; height++) {
+            for (let height = latestProcessedHeight + 1; height <= newHeight; height++) {
                 yield processNewHeight(network, height);
             }
         }

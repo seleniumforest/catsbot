@@ -99,7 +99,10 @@ const getNewHeight = async (networkName) => {
             });
 
             reportStats(networkName, rpc, true);
-            return parseInt(data.result.sync_info.latest_block_height)
+            return {
+                newHeight: parseInt(data.result.sync_info.latest_block_height),
+                time: data.result.sync_info.latest_block_time
+            }
         } catch (err) {
             console.log(`Error fetching height in ${networkName} rpc ${rpc} error : ${err?.message}`);
             reportStats(networkName, rpc, false);
