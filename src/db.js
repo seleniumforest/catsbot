@@ -14,10 +14,11 @@ const saveProcessedTx = async (networkName, height, txHash) => {
         });
 }
 
-const createEmptyBlock = async (networkName, height) => {
+const createEmptyBlock = async (networkName, height, time) => {
     await db.ref(`${networkName}/block`)
         .transaction(() => ({
-            height: height,
+            height,
+            time,
             txs: []
         }));
 }

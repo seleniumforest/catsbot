@@ -5,6 +5,7 @@ const { saveProcessedTx, getLastProcessedTxs, dbReady, createEmptyBlock } = requ
 const msgHandlers = require("./messages");
 const { getTxsInBlock, getNewHeight } = require("./requests");
 const { registerNetwork } = require("./endpoints");
+const { dateToUnix } = require("./helpers");
 const args = require('yargs').argv;
 
 const processNewTx = async (network, newtx, height) => {
@@ -26,8 +27,8 @@ const processNewTx = async (network, newtx, height) => {
     await Promise.all(msgJobs);
 }
 
-const processNewHeight = async (network, newHeight) => {
-    await createEmptyBlock(network.name, newHeight);
+const processNewHeight = async (network, newHeight, time) => {
+    await createEmptyBlock(network.name, newHeight, time);
     let txs = await getTxsInBlock(network.name, newHeight);
     console.log(`${network.name}: recieved new block ${newHeight} with ${txs.length} txs`);
 
@@ -44,12 +45,21 @@ const processNetwork = (network) => {
     co(function* () {
         while (true) {
             let lastProcessedData = yield getLastProcessedTxs(network.name);
+            console.log("LAST PROCESSED BLOCK " + lastProcessedData?.height) 
             let { newHeight, time } = yield getNewHeight(network.name);
-
+            
             //if there's no db, init first block record
             if (!lastProcessedData || cleanMode) {
                 cleanMode = false;
-                yield processNewHeight(network, newHeight);
+                yield processNewHeight(network, newHeight, time);
+                continue;
+            }
+            //if last block was more than 5 min ago, skip missed blocks 
+            let isBlockOutdated = 
+                Math.abs(dateToUnix(lastProcessedData.time) - dateToUnix(time)) > 300;
+            if (isBlockOutdated) {
+                console.log("BLOCK IS OUTDATED")
+                yield processNewHeight(network, newHeight, time);
                 continue;
             }
 
@@ -57,7 +67,7 @@ const processNetwork = (network) => {
 
             yield new Promise(res => setTimeout(res, 500));
             for (let height = latestProcessedHeight + 1; height <= newHeight; height++) {
-                yield processNewHeight(network, height);
+                yield processNewHeight(network, height, time);
             }
         }
     });

@@ -62,6 +62,9 @@ const getDenomConfig = (network, denom, msgTrigger) => {
     }
 }
 
+const dateToUnix = (dateStr) =>  
+    Math.floor(new Date(dateStr).getTime() / 1000)
+ 
 module.exports = {
     fromBaseUnit,
     getDefaultRegistry,
@@ -71,5 +74,6 @@ module.exports = {
     fromBase64,
     getValidatorMoniker,
     getDenomConfig,
-    getSifchainRegistry
+    getSifchainRegistry,
+    dateToUnix
 }
