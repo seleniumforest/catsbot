@@ -45,7 +45,6 @@ const processNetwork = (network) => {
     co(function* () {
         while (true) {
             let lastProcessedData = yield getLastProcessedTxs(network.name);
-            console.log("LAST PROCESSED BLOCK " + lastProcessedData?.height) 
             let { newHeight, time } = yield getNewHeight(network.name);
             
             //if there's no db, init first block record
@@ -58,7 +57,7 @@ const processNetwork = (network) => {
             let isBlockOutdated = 
                 Math.abs(dateToUnix(lastProcessedData.time) - dateToUnix(time)) > 300;
             if (isBlockOutdated) {
-                console.log("BLOCK IS OUTDATED")
+                console.log(`${network.name} BLOCK IS OUTDATED`)
                 yield processNewHeight(network, newHeight, time);
                 continue;
             }
