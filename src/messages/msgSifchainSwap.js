@@ -45,11 +45,19 @@ let fetchSifchainAssets = async () => {
         return assetsCache.get(key)
 
     try {
-        let response = await axios.get("https://api.mintscan.io/v2/assets/sifchain");
-        assetsCache.set(key, response.data.assets)
-        return response.data.assets;
+        let { data: { assets: mintscanAssets } } =
+            await axios.get("https://api.mintscan.io/v2/assets/sifchain", {
+                headers: {
+                    "Origin": "https://www.mintscan.io",
+                    "Referer": "https://www.mintscan.io/"
+                }
+            });
+
+        let allAssets = mintscanAssets?.length > 0 ? mintscanAssets : assets;
+        assetsCache.set(key, allAssets)
+        return allAssets;
     }
-    catch (err) { }
+    catch (err) { console.log(`Error fetching sifchain assets ${err?.message}`) }
 
     return assets;
 }
