@@ -41,24 +41,28 @@ const processNewHeight = async (network, newHeight, time) => {
 
 const processNetwork = (network) => {
     let cleanMode = args.clean === "true";
-
     co(function* () {
         while (true) {
             let lastProcessedData = yield getLastProcessedTxs(network.name);
-            let { newHeight, time } = yield getNewHeight(network.name);
+            let newHeightData = yield getNewHeight(network.name, lastProcessedData?.height);
+            if (!newHeightData)
+                continue;
+
+            let newHeight = newHeightData?.newHeight;
+            let newHeightTime = newHeightData?.time;
             
             //if there's no db, init first block record
             if (!lastProcessedData || cleanMode) {
                 cleanMode = false;
-                yield processNewHeight(network, newHeight, time);
+                yield processNewHeight(network, newHeight, newHeightTime);
                 continue;
             }
             //if last block was more than 5 min ago, skip missed blocks 
             let isBlockOutdated = 
-                Math.abs(dateToUnix(lastProcessedData.time) - dateToUnix(time)) > 300;
+                Math.abs(dateToUnix(lastProcessedData.time) - dateToUnix(newHeightTime)) > 300;
             if (isBlockOutdated) {
-                console.log(`${network.name} BLOCK IS OUTDATED`)
-                yield processNewHeight(network, newHeight, time);
+                console.warn(`${network.name} BLOCK IS OUTDATED`)
+                yield processNewHeight(network, newHeight, newHeightTime);
                 continue;
             }
 
@@ -66,7 +70,7 @@ const processNetwork = (network) => {
 
             yield new Promise(res => setTimeout(res, 500));
             for (let height = latestProcessedHeight + 1; height <= newHeight; height++) {
-                yield processNewHeight(network, height, time);
+                yield processNewHeight(network, height, newHeightTime);
             }
         }
     });

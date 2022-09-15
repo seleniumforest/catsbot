@@ -4,6 +4,7 @@ const { reportStats, getEndpoints } = require("./endpoints");
 const { fromBase64 } = require("@cosmjs/encoding");
 const { Int53 } = require("@cosmjs/math");
 const { CosmWasmClient } = require("@cosmjs/cosmwasm-stargate");
+const { dateToUnix } = require("./helpers");
 
 const tokensCache = new NodeCache();
 const validatorsCache = new NodeCache({
@@ -87,7 +88,35 @@ const getTxsInBlock = async (networkName, height) => {
     return [];
 }
 
-const getNewHeight = async (networkName) => {
+const pollForLatestHeight = async (networkName) => {
+    let requests = [];
+    let endpoints = getEndpoints(networkName);
+
+    endpoints.map(e => requests.push(async () => {
+        let url = `${e.address}/status`
+        let { data } = await axios({
+            method: "GET",
+            url,
+            timeout: 5000
+        });
+
+        return data;
+    }));
+
+    let results = await Promise.all(requests.map(r => r()));
+    let bestOption = 0;
+    for (let response of results) {
+        let height = parseInt(response.result.sync_info.latest_block_height);
+        if (height > bestOption)
+            bestOption = height;
+    }
+    return bestOption;
+}
+
+const getNewHeight = async (networkName, lastHeight) => {
+    if (!lastHeight)
+        lastHeight = await pollForLatestHeight(networkName);
+
     let endpoints = getEndpoints(networkName);
     for (const { address: rpc } of endpoints) {
         try {
@@ -99,10 +128,12 @@ const getNewHeight = async (networkName) => {
             });
 
             reportStats(networkName, rpc, true);
-            return {
-                newHeight: parseInt(data.result.sync_info.latest_block_height),
-                time: data.result.sync_info.latest_block_time
-            }
+            let newHeight = parseInt(data.result.sync_info.latest_block_height);
+            if (newHeight >= lastHeight)
+                return {
+                    newHeight,
+                    time: data.result.sync_info.latest_block_time
+                }
         } catch (err) {
             console.log(`Error fetching height in ${networkName} rpc ${rpc} error : ${err?.message}`);
             reportStats(networkName, rpc, false);
