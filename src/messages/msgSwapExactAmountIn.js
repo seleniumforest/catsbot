@@ -87,22 +87,15 @@ const parseOutCoin = async (swappedCoin) => {
         outTicker: ticker,
         decimals,
         sourceDenom
-    }   
+    }
 }
 
 const searchInfoByDenom = async (denom) => {
     //try search in assetlist.json
-    let resultFromAssetlist = assetlist?.find(x => x.base === denom);
-    if (resultFromAssetlist) {
-        return {
-            sourceDenom: resultFromAssetlist?.ibc?.source_denom,
-            ticker: resultFromAssetlist?.symbol,
-            decimals: resultFromAssetlist?.denom_units
-                .find(x => x.denom.toLowerCase() === resultFromAssetlist?.symbol?.toLowerCase() ||
-                    x.denom.toLowerCase() === resultFromAssetlist?.display?.toLowerCase())
-                ?.exponent
-        };
-    }
+    let assetListResult = searchDenomInAssetList(assetlist, denom);
+    if (assetListResult)
+        return assetListResult;
+
     //try search on imperator api
     try {
         let tickerUrl = 'https://api-osmosis.imperator.co/search/v1/symbol?denom=';
@@ -116,6 +109,31 @@ const searchInfoByDenom = async (denom) => {
         }
     } catch (err) {
         console.log(`Cannot find denom ${denom} ${JSON.stringify(err?.message)}`)
+    }
+
+    //try fetch from github
+    try {
+        let url = "https://raw.githubusercontent.com/osmosis-labs/assetlists/main/osmosis-1/osmosis-frontier.assetlist.json";
+        let githubTokensData = await axios.get(url);
+        let githubListResult = searchDenomInAssetList(githubTokensData.data.assets, denom);
+        if (githubListResult)
+            return githubListResult;
+    } catch (err) {
+        console.log(`Cannot find on github denom ${denom} ${JSON.stringify(err?.message)}`)
+    }
+}
+
+const searchDenomInAssetList = (list, denom) => {
+    let resultFromAssetlist = list?.find(x => x.base === denom);
+    if (resultFromAssetlist) {
+        return {
+            sourceDenom: resultFromAssetlist?.ibc?.source_denom,
+            ticker: resultFromAssetlist?.symbol,
+            decimals: resultFromAssetlist?.denom_units
+                .find(x => x.denom.toLowerCase() === resultFromAssetlist?.symbol?.toLowerCase() ||
+                    x.denom.toLowerCase() === resultFromAssetlist?.display?.toLowerCase())
+                ?.exponent
+        };
     }
 }
 
