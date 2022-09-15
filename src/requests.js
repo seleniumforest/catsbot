@@ -4,7 +4,6 @@ const { reportStats, getEndpoints } = require("./endpoints");
 const { fromBase64 } = require("@cosmjs/encoding");
 const { Int53 } = require("@cosmjs/math");
 const { CosmWasmClient } = require("@cosmjs/cosmwasm-stargate");
-const { dateToUnix } = require("./helpers");
 
 const tokensCache = new NodeCache();
 const validatorsCache = new NodeCache({
