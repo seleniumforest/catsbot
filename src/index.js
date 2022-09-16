@@ -8,23 +8,28 @@ const { registerNetwork } = require("./endpoints");
 const { dateToUnix } = require("./helpers");
 const args = require('yargs').argv;
 
-const processNewTx = async (network, newtx, height) => {
+const processNewTx = async (network, newtx) => {
     let isFailedTx = newtx.code !== 0;
     if (isFailedTx)
         return;
 
     let decodedTx = decodeTxRaw(newtx.tx);
-    let msgJobs = [];
-    for (let i = 0; i < decodedTx.body.messages.length; i++) {
-        let msg = decodedTx.body.messages[i];
-        let msgLog = newtx?.log?.find(x => i === 0 ? !x.msg_index : x.msg_index === i);
-        if (typeof msgHandlers[msg.typeUrl] !== "function")
-            continue;
+    let handlers = decodedTx.body.messages
+        .filter(msg => typeof msgHandlers[msg.typeUrl] === "function")
+        .map((msg, i) => {
+            let msgLog = newtx?.log?.find(x => i === 0 ? !x.msg_index : x.msg_index === i);
+            let handler = msgHandlers[msg.typeUrl];
 
-        msgJobs.push(msgHandlers[msg.typeUrl](network, msg, newtx, msgLog));
-    }
+            return (async () => {
+                try {
+                    return handler(network, msg, newtx, msgLog)
+                } catch (err) {
+                    console.error(`Error handling tx in ${network.name} msg ${err?.message}`)
+                }
+            })();
+        });
 
-    await Promise.all(msgJobs);
+    await Promise.all(handlers);
 }
 
 const processNewHeight = async (network, newHeight, time) => {
@@ -32,11 +37,7 @@ const processNewHeight = async (network, newHeight, time) => {
     let txs = await getTxsInBlock(network.name, newHeight);
     console.log(`${network.name}: recieved new block ${newHeight} with ${txs.length} txs`);
 
-    let txJobs = [];
-    for (const tx of txs)
-         txJobs.push(processNewTx(network, tx, newHeight));
-
-    await Promise.all(txJobs);
+    await Promise.all(txs.map(tx => processNewTx(network, tx, newHeight)));
 }
 
 const processNetwork = (network) => {
@@ -50,7 +51,7 @@ const processNetwork = (network) => {
 
             let newHeight = newHeightData?.newHeight;
             let newHeightTime = newHeightData?.time;
-            
+
             //if there's no db, init first block record
             if (!lastProcessedData || cleanMode) {
                 cleanMode = false;
@@ -58,10 +59,10 @@ const processNetwork = (network) => {
                 continue;
             }
             //if last block was more than 5 min ago, skip missed blocks 
-            let isBlockOutdated = 
+            let isBlockOutdated =
                 Math.abs(dateToUnix(lastProcessedData.time) - dateToUnix(newHeightTime)) > 300;
             if (isBlockOutdated) {
-                console.warn(`${network.name} BLOCK IS OUTDATED`)
+                console.warn(`${network.name} BLOCK ${lastProcessedData?.height} IS OUTDATED`)
                 yield processNewHeight(network, newHeight, newHeightTime);
                 continue;
             }
