@@ -40,6 +40,7 @@ Supported msg types
         - msgExecuteContract      
         - msgSend     
         - msgUndelegate
+        - msgBeginRedelegate
 
  
 2. Run ``` pm2 start ecosystem.config.js ``` to run script on all networks
