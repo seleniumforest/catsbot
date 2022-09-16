@@ -1,7 +1,7 @@
 const { decodeTxRaw } = require("@cosmjs/proto-signing");
 const { co } = require("co");
 const config = require("../config.json");
-const { saveProcessedTx, getLastProcessedTxs, dbReady, createEmptyBlock } = require("./db");
+const { getLastProcessedTxs, dbReady, createEmptyBlock } = require("./db");
 const msgHandlers = require("./messages");
 const { getTxsInBlock, getNewHeight } = require("./requests");
 const { registerNetwork } = require("./endpoints");
@@ -20,13 +20,10 @@ const processNewTx = async (network, newtx) => {
             let msgLog = newtx?.log?.find(x => i === 0 ? !x.msg_index : x.msg_index === i);
             let handler = msgHandlers[msg.typeUrl];
 
-            return (async () => {
-                try {
-                    return handler(network, msg, newtx, msgLog)
-                } catch (err) {
-                    console.error(`Error handling tx in ${network.name} msg ${err?.message}`)
-                }
-            })();
+            return handler(network, msg, newtx, msgLog)
+                .catch((err) => {
+                    console.error(`Error handling txid ${newtx.hash} in ${network.name} msg ${err?.message}`)
+                });
         });
 
     await Promise.all(handlers);
