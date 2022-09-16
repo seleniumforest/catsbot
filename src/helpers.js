@@ -48,17 +48,17 @@ const getValidatorMoniker = async (network, validatorAddress) => {
 }
 
 const getDenomConfig = (network, denom, msgTrigger) => {
-    let undelegatedDenomConfig =
+    let denomConfig =
         network.notifyDenoms.find(x => x.denom && (x.denom === denom));
 
     let thresholdAmount =
-        undelegatedDenomConfig?.msgAmounts?.[msgTrigger] ||
-        undelegatedDenomConfig?.amount;
+        denomConfig?.msgAmounts?.[msgTrigger] ||
+        denomConfig?.amount;
 
     return {
         thresholdAmount,
-        ticker: undelegatedDenomConfig?.ticker,
-        decimals: undelegatedDenomConfig?.decimals
+        ticker: denomConfig?.ticker,
+        decimals: denomConfig?.decimals
     }
 }
 

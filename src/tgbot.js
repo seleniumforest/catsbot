@@ -28,6 +28,13 @@ const notifyMsgUndelegate =
             `${getExplorerUrl(network, txhash)}`);
     }
 
+const notifyMsgRedelegate =
+    async (delegator, fromValidator, toValidator, ticker, amount, txhash, network) => {
+        await notify(`♻️ #redelegation #${network.name} ♻️\nAddress ${shortAddress(delegator)} ` +
+            `redelegated ${formatNum(amount)} ${ticker} from ${fromValidator} to ${toValidator}. \n` +
+            `${getExplorerUrl(network, txhash)}`);
+    }
+
 const notifyCw20Transfer =
     async (sender, reciever, ticker, amount, txhash, network) => {
         await notify(`💲 #tokentransfer #${network.name} 💲\nAddress ${shortAddress(sender)} ` +
@@ -87,5 +94,6 @@ module.exports = {
     notifyMsgUndelegate,
     notifyCw20Transfer,
     notifyOsmosisSwap,
-    notifySifchainSwap
+    notifySifchainSwap,
+    notifyMsgRedelegate
 };
