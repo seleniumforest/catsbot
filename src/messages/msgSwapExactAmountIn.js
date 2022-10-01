@@ -1,4 +1,4 @@
-const { fromBaseUnit, getOsmosisRegistry, fromBase64 } = require("../helpers");
+const { fromBaseUnit, getOsmosisRegistry, fromBase64, shortAddress } = require("../helpers");
 const { notifyOsmosisSwap } = require("../tgbot");
 const Big = require('big.js');
 const { default: axios } = require("axios");
@@ -96,21 +96,6 @@ const searchInfoByDenom = async (denom) => {
     if (assetListResult)
         return assetListResult;
 
-    //try search on imperator api
-    try {
-        let tickerUrl = 'https://api-osmosis.imperator.co/search/v1/symbol?denom=';
-        let decimalsUrl = 'https://api-osmosis.imperator.co/search/v1/exponent?symbol=';
-        let { data: { symbol } } = await axios.get(`${tickerUrl}${denom}`);
-        let { data: { exponent } } = await axios.get(`${decimalsUrl}${denom}`);
-
-        return {
-            ticker: symbol,
-            decimals: exponent
-        }
-    } catch (err) {
-        console.log(`Cannot find denom ${denom} ${JSON.stringify(err?.message)}`)
-    }
-
     //try fetch from github
     try {
         let url = "https://raw.githubusercontent.com/osmosis-labs/assetlists/main/osmosis-1/osmosis-frontier.assetlist.json";
@@ -120,6 +105,22 @@ const searchInfoByDenom = async (denom) => {
             return githubListResult;
     } catch (err) {
         console.log(`Cannot find on github denom ${denom} ${JSON.stringify(err?.message)}`)
+    }
+
+    //try search on imperator api
+    try {
+        let tickerUrl = 'https://api-osmosis.imperator.co/search/v1/symbol?denom=';
+        let decimalsUrl = 'https://api-osmosis.imperator.co/search/v1/exponent?symbol=';
+        let { data: { symbol } } = await axios.get(`${tickerUrl}${denom}`);
+        let { data: { exponent } } = await axios.get(`${decimalsUrl}${denom}`);
+
+        if (exponent)
+            return {
+                ticker: symbol || shortAddress(denom, 8, 4),
+                decimals: exponent
+            }
+    } catch (err) { 
+        console.log(`Cannot find denom ${denom} ${JSON.stringify(err?.message)}`)
     }
 }
 

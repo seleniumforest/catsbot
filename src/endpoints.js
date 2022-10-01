@@ -14,7 +14,7 @@ const registerNetwork = async (network) => {
 
     setTimeout(() => {
         registerEndpoints(regName, name)
-    }, 1000 * 60 * 60 * (config?.rpcsTtl || 12));
+    }, 1000 * 60 * 60 * (config?.rpcsTtl || 1));
 
     return chainData;
 }
@@ -69,8 +69,8 @@ const getChainData = (registryName) => {
                     }
 
                     console.log(`${rpc.address} is alive, but not synced`);
-                }).catch(() => {
-                    console.log(`${rpc.address} is dead`);
+                }).catch((err) => {
+                    console.log(`${rpc.address} is dead. Error ${err?.message}`);
                     //todo make 2nd request
                 });
             });

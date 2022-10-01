@@ -58,7 +58,7 @@ const getDenomConfig = (network, denom, msgTrigger) => {
     return {
         thresholdAmount,
         ticker: denomConfig?.ticker,
-        decimals: denomConfig?.decimals
+        decimals: denomConfig?.decimals || 6
     }
 }
 
