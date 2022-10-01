@@ -12,7 +12,7 @@ const registerNetwork = async (network) => {
     let regName = network.registryName;
     let chainData = await registerEndpoints(regName, name);
 
-    setTimeout(() => {
+    setInterval(() => {
         registerEndpoints(regName, name)
     }, 1000 * 60 * 60 * (config?.rpcsTtl || 1));
 
@@ -23,7 +23,13 @@ const registerEndpoints = async (regName, name) => {
     let current = [...endpointRankings[name]?.entries() ?? []];
     console.log(`endpoints for ${name}: ${JSON.stringify(current)}`);
 
-    let chainData = await getChainData(regName || name);
+    let chainData = await getChainData(regName || name);    
+    let newEndpointsRecieved = !chainData.endpoints
+        .every(x => current.map(([_, { address }]) => address).includes(x.address));
+
+    if (!newEndpointsRecieved)
+        return;
+
     if (!chainData?.endpoints?.length || chainData.endpoints.length === 0) {
         console.warn("No endpoints");
         return;
