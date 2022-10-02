@@ -114,12 +114,11 @@ const searchInfoByDenom = async (denom) => {
         let { data: { symbol } } = await axios.get(`${tickerUrl}${denom}`);
         let { data: { exponent } } = await axios.get(`${decimalsUrl}${denom}`);
 
-        if (exponent)
-            return {
-                ticker: symbol || shortAddress(denom, 8, 4),
-                decimals: exponent
-            }
-    } catch (err) { 
+        return {
+            ticker: symbol || shortAddress(denom, 8, 4),
+            decimals: exponent || 6
+        }
+    } catch (err) {
         console.log(`Cannot find denom ${denom} ${JSON.stringify(err?.message)}`)
     }
 }
