@@ -22,7 +22,8 @@ const handleMsgSwapExactAmountIn = async (network, msg, tx) => {
     if (inTicker === outTicker)
         return;
 
-    let allNotifyDenoms = config.networks.flatMap(x => x.notifyDenoms);
+    let allNotifyDenoms = network.notifyDenoms;
+    //todo match by denom instead of ticker
     let inTickerMatch = allNotifyDenoms.find(x => x.ticker === inTicker);
     let outTickerMatch = allNotifyDenoms.find(x => x.ticker === outTicker);
 

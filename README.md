@@ -35,13 +35,13 @@ Deployed version https://t.me/cosmos_whalecat
         
 Supported msg types
 
-        - msgSwapExactAmountIn
+        - msgSwapExactAmountIn (osmosis swaps)
         - msgDelegate    
         - msgExecuteContract      
         - msgSend     
         - msgUndelegate
         - msgBeginRedelegate
-
+        - msgSifchainSwap (sif swaps)
  
 2. Run ``` pm2 start ecosystem.config.js ``` to run script on all networks
   - If you want to start solo network, please add arg with name specified in config 
