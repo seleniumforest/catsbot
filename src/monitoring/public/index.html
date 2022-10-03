@@ -1,0 +1,28 @@
+<html>
+
+<body>
+</body>
+<script>
+    (async () => {
+        let resp = await fetch("/status");
+        let data = await resp.json();
+        for (let network of data.filter(x => x)) {
+            let el = document.createElement("p");
+            el.innerText = `Network: ${network.network} last block: ${network.height} time: ${new Date(network.time)}`;
+            document.body.append(el);
+        }
+
+        let respLogs = await fetch("/logs");
+        let dataLogs = await respLogs.json();
+
+        let outEl = document.createElement("p");
+        outEl.innerText = "OUT LOGS \n" + dataLogs.outlog;
+        document.body.append(outEl);
+
+        let errorEl = document.createElement("p");
+        errorEl.innerText =  "ERROR LOGS \n" + dataLogs.errlog;
+        document.body.append(errorEl);
+    })();
+</script>
+
+</html>

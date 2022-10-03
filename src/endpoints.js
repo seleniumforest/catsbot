@@ -53,7 +53,7 @@ const getChainData = (registryName) => {
                 chainInfo = yield axios.get(`${api}/${registryName}/chain.json`);
             } catch (err) { }
 
-            chainInfo = chainInfo.data ||
+            chainInfo = chainInfo?.data ||
                 chains.find(chain => chain.chain_name === registryName);
 
             console.log(`Checking rpcs availability for ${registryName}`);

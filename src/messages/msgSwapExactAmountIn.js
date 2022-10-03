@@ -3,7 +3,6 @@ const { notifyOsmosisSwap } = require("../tgbot");
 const Big = require('big.js');
 const { default: axios } = require("axios");
 const assetlist = require("../../chain-specific/osmosis/assets.json").assets;
-const config = require("../../config.json");
 const msgTrigger = "msgSwapExactAmountIn";
 
 const handleMsgSwapExactAmountIn = async (network, msg, tx) => {

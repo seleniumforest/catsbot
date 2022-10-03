@@ -6,6 +6,7 @@ const msgHandlers = require("./messages");
 const { getTxsInBlock, getNewHeight } = require("./requests");
 const { registerNetwork } = require("./endpoints");
 const { dateToUnix } = require("./helpers");
+const monitoring = require("./monitoring/server");
 const args = require('yargs').argv;
 
 const processNewTx = async (network, newtx) => {
@@ -88,5 +89,7 @@ co(function* () {
             ...network,
             ...chainData
         })
-    }
+    };
+
+    monitoring.listen(3000);
 }).catch(err => console.log(err));
