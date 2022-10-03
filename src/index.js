@@ -79,14 +79,14 @@ const processNetwork = (network) => {
 co(function* () {
     yield dbReady();
     monitoring.listen(3000);
-    
+
     let networks = args.network ?
         config.networks.filter(x => x.name === args.network) :
         config.networks;
 
     for (let network of networks) {
         let chainData = yield registerNetwork(network);
-
+   
         processNetwork({
             ...network,
             ...chainData

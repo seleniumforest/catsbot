@@ -23,7 +23,7 @@ const registerEndpoints = async (regName, name) => {
     let current = [...endpointRankings[name]?.entries() ?? []];
     console.log(`endpoints for ${name}: ${JSON.stringify(current)}`);
 
-    let chainData = await getChainData(regName || name);    
+    let chainData = await getChainData(regName || name);
     let newEndpointsRecieved = !chainData.endpoints
         .every(x => current.map(([_, { address }]) => address).includes(x.address));
 
@@ -46,45 +46,46 @@ const registerEndpoints = async (regName, name) => {
 
 const getChainData = (registryName) => {
     return co(function* () {
-        for (let api of config.registryApis) {
-            let chainInfo = null;
+        let chainInfo = null;
 
+        for (let api of config.registryApis) {
             try {
                 chainInfo = yield axios.get(`${api}/${registryName}/chain.json`);
+                break;
             } catch (err) { }
+        }
 
-            chainInfo = chainInfo?.data ||
-                chains.find(chain => chain.chain_name === registryName);
+        chainInfo = chainInfo?.data ||
+            chains.find(chain => chain.chain_name === registryName);
 
-            console.log(`Checking rpcs availability for ${registryName}`);
+        console.log(`Checking rpcs availability for ${registryName}`);
 
-            let aliveRpcs = yield chainInfo.apis.rpc.map(rpc => {
-                return axios({
-                    method: "GET",
-                    url: `${rpc.address}/status`,
-                    timeout: 5000
-                }).then(response => {
-                    if (!response || response.status !== 200)
-                        return;
+        let aliveRpcs = yield chainInfo.apis.rpc.map(rpc => {
+            return axios({
+                method: "GET",
+                url: `${rpc.address}/status`,
+                timeout: 5000
+            }).then(response => {
+                if (!response || response.status !== 200)
+                    return;
 
-                    let blockTime = Date.parse(response.data.result.sync_info.latest_block_time);
-                    let now = Date.now();
-                    if (Math.abs(now - blockTime) < 60000) {
-                        console.log(`${rpc.address} is alive, sync block ${response.data.result.sync_info.latest_block_height}`);
-                        return rpc;
-                    }
+                let blockTime = Date.parse(response.data.result.sync_info.latest_block_time);
+                let now = Date.now();
+                if (Math.abs(now - blockTime) < 60000) {
+                    console.log(`${rpc.address} is alive, sync block ${response.data.result.sync_info.latest_block_height}`);
+                    return rpc;
+                }
 
-                    console.log(`${rpc.address} is alive, but not synced`);
-                }).catch((err) => {
-                    console.log(`${rpc.address} is dead. Error ${err?.message}`);
-                    //todo make 2nd request
-                });
+                console.log(`${rpc.address} is alive, but not synced`);
+            }).catch((err) => {
+                console.log(`${rpc.address} is dead. Error ${err?.message}`);
+                //todo make 2nd request
             });
+        });
 
-            return yield {
-                endpoints: aliveRpcs.filter(x => !!x),
-                explorers: chainInfo.explorers
-            }
+        return yield {
+            endpoints: aliveRpcs.filter(x => !!x),
+            explorers: chainInfo.explorers
         }
     })
 };
