@@ -41,6 +41,7 @@ const processNewHeight = async (network, newHeight, time) => {
 const processNetwork = (network) => {
     let cleanMode = args.clean === "true";
     co(function* () {
+        //yield processNewHeight(network, 12326122, new Date().toString());
         while (true) {
             let lastProcessedData = yield getLastProcessedTxs(network.name);
             let newHeightData = yield getNewHeight(network.name, lastProcessedData?.height);

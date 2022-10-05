@@ -18,7 +18,7 @@ const notifyMsgSend = async (from, to, ticker, amount, txhash, network) => {
         fromAddress: shortAddress(from),
         sentAmount: formatNum(amount),
         ticker,
-        usdPrice: tryInsertPrice(amount, ticker),
+        usdPrice: tryInsertPrice(ticker, amount),
         toAddress: shortAddress(to),
         explorerUrl: getExplorerUrl(network, txhash)
     });
@@ -36,7 +36,7 @@ const notifyMsgDelegate = async (from, to, ticker, amount, txhash, network) => {
         fromAddress: shortAddress(from),
         delegatedAmount: formatNum(amount),
         ticker,
-        usdPrice: tryInsertPrice(amount, ticker),
+        usdPrice: tryInsertPrice(ticker, amount),
         toAddress: to,
         explorerUrl: getExplorerUrl(network, txhash)
     });
@@ -55,7 +55,7 @@ const notifyMsgUndelegate = async (delegator, validator, ticker, amount, txhash,
         undelegatedAmount: formatNum(amount),
         ticker,
         validator,
-        usdPrice: tryInsertPrice(amount, ticker),
+        usdPrice: tryInsertPrice(ticker, amount),
         explorerUrl: getExplorerUrl(network, txhash)
     });
     await notify(finalMsg);
@@ -76,7 +76,7 @@ const notifyMsgRedelegate =
             toValidator,
             redelegatedAmount: formatNum(amount),
             ticker,
-            usdPrice: tryInsertPrice(amount, ticker),
+            usdPrice: tryInsertPrice(ticker, amount),
             explorerUrl: getExplorerUrl(network, txhash)
         });
         await notify(finalMsg);
@@ -94,7 +94,7 @@ const notifyCw20Transfer =
             sender: shortAddress(sender),
             sentAmount: formatNum(amount),
             ticker,
-            usdPrice: tryInsertPrice(amount, ticker),
+            usdPrice: tryInsertPrice(ticker, amount),
             reciever: shortAddress(reciever),
             explorerUrl: getExplorerUrl(network, txhash)
         });
@@ -171,7 +171,7 @@ const tryInsertPrice = (ticker, amount) => {
         return "";
 
     let price = priceData.prices.get(coingeckoId);
-    return `(${(price * amount).toFixed(0)}$ USD) `;
+    return `(USD $${formatNum(price * amount)}) `;
 }
 
 const interpolate = (string, args) => {
