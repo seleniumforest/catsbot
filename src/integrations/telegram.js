@@ -27,7 +27,7 @@ const notifyMsgSend = async (from, to, ticker, amount, txhash, network) => {
 }
 
 const msgDelegatePattern = "🐳 #delegation #${network} 🐳\nAddress ${fromAddress} " +
-    "delegated ${delegatedAmount} ${usdPrice} ${ticker} to ${toAddress}. \n" +
+    "delegated ${delegatedAmount} ${ticker} ${usdPrice} to ${toAddress}. \n" +
     "${explorerUrl}";
 
 const notifyMsgDelegate = async (from, to, ticker, amount, txhash, network) => {
