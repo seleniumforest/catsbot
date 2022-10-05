@@ -37,7 +37,7 @@ const notifyMsgDelegate = async (from, to, ticker, amount, txhash, network) => {
         delegatedAmount: formatNum(amount),
         ticker,
         usdPrice: tryInsertPrice(amount, ticker),
-        toAddress: shortAddress(to),
+        toAddress: to,
         explorerUrl: getExplorerUrl(network, txhash)
     });
     await notify(finalMsg);
