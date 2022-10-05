@@ -1,7 +1,7 @@
-const { getSifchainRegistry, fromBase64, fromBaseUnit } = require("../helpers");
+const { getSifchainRegistry, fromBaseUnit } = require("../helpers");
 const Big = require('big.js');
 const { default: axios } = require("axios");
-const { notifySifchainSwap } = require("../tgbot");
+const { notifySifchainSwap } = require("../integrations/telegram");
 const { assets } = require("../../chain-specific/sifchain/assets.json");
 const NodeCache = require("node-cache");
 const msgTrigger = "msgSifchainSwap";

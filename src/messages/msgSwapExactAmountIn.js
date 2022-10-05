@@ -1,5 +1,5 @@
 const { fromBaseUnit, getOsmosisRegistry, fromBase64, shortAddress } = require("../helpers");
-const { notifyOsmosisSwap } = require("../tgbot");
+const { notifyOsmosisSwap } = require("../integrations/telegram");
 const Big = require('big.js');
 const { default: axios } = require("axios");
 const assetlist = require("../../chain-specific/osmosis/assets.json").assets;

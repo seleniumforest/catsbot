@@ -3,7 +3,7 @@ const {
     fromBaseUnit,
     getValidatorMoniker,
     getDenomConfig } = require("../helpers");
-const { notifyMsgRedelegate } = require("../tgbot");
+const { notifyMsgRedelegate } = require("../integrations/telegram");
 const Big = require('big.js');
 const msgTrigger = "msgBeginRedelegate";
 

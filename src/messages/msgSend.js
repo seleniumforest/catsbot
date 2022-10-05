@@ -1,5 +1,5 @@
 const { getDefaultRegistry, fromBaseUnit, getDenomConfig } = require("../helpers");
-const { notifyMsgSend } = require("../tgbot");
+const { notifyMsgSend } = require("../integrations/telegram");
 const Big = require('big.js');
 const msgTrigger = "msgSend";
 

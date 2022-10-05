@@ -66,6 +66,6 @@ Supported msg types
 
 - [x] Osmosis whale swaps
 - [x] Custom amounts for each message on each denom
-- [ ] Show Prices in USD
+- [x] Show Prices in USD
 - [ ] Add Secret network
 - [ ] Add IBC-txs

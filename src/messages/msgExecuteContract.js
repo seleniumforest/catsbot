@@ -1,5 +1,5 @@
 const { getCosmwasmRegistry, fromBaseUnit } = require("../helpers");
-const { notifyCw20Transfer } = require("../tgbot");
+const { notifyCw20Transfer } = require("../integrations/telegram");
 const Big = require('big.js');
 const { getCw20TokenInfo } = require("../requests");
 
@@ -32,13 +32,14 @@ const handleMsgExecuteContract = async (network, msg, tx) => {
     )
 }
 
+//<kekw>
 const isCw20TransferMsg = (msg) => {
-    // ¯\_(ツ)_/¯
     return msg?.transfer &&
         msg?.transfer?.recipient &&
         msg?.transfer?.amount &&
         Object.keys(msg).length === 1 &&
         Object.keys(msg.transfer).length === 2;
 }
+//</kekw>
 
 module.exports = handleMsgExecuteContract
