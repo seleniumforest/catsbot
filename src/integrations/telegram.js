@@ -8,17 +8,21 @@ const bot = new Telegraf(config.token);
 if (isProdEnv)
     bot.launch();
 
-const msgSendPattern = "💲 #transfer #${network} 💲\nAddress ${fromAddress} " +
+const msgSendPattern = "${emoji} #transfer #${network} ${emoji}\nAddress ${fromAddress} " +
     "sent ${sentAmount} ${ticker} ${usdPrice} to ${toAddress}. \n" +
     "${explorerUrl}";
 
 const notifyMsgSend = async (from, to, ticker, amount, txhash, network) => {
+    let usdPrice = tryGetPrice(ticker) * amount;
+    let sendEmoji = "💲";
+
     let finalMsg = interpolate(msgSendPattern, {
+        emoji: sendEmoji.repeat(getEmojiCount(usdPrice)),
         network: network.name,
         fromAddress: shortAddress(from),
         sentAmount: formatNum(amount),
         ticker,
-        usdPrice: tryInsertPrice(ticker, amount),
+        usdPrice: getUsdPriceString(usdPrice, amount),
         toAddress: shortAddress(to),
         explorerUrl: getExplorerUrl(network, txhash)
     });
@@ -26,17 +30,21 @@ const notifyMsgSend = async (from, to, ticker, amount, txhash, network) => {
     await notify(finalMsg);
 }
 
-const msgDelegatePattern = "🐳 #delegation #${network} 🐳\nAddress ${fromAddress} " +
+const msgDelegatePattern = "${emoji} #delegation #${network} ${emoji}\nAddress ${fromAddress} " +
     "delegated ${delegatedAmount} ${ticker} ${usdPrice} to ${toAddress}. \n" +
     "${explorerUrl}";
 
 const notifyMsgDelegate = async (from, to, ticker, amount, txhash, network) => {
+    let delegateEmoji = "🐳";
+    let usdPrice = tryGetPrice(ticker);
+
     const finalMsg = interpolate(msgDelegatePattern, {
+        emoji: repeatEmoji(delegateEmoji, usdPrice),
         network: network.name,
         fromAddress: shortAddress(from),
         delegatedAmount: formatNum(amount),
         ticker,
-        usdPrice: tryInsertPrice(ticker, amount),
+        usdPrice: getUsdPriceString(usdPrice, amount),
         toAddress: to,
         explorerUrl: getExplorerUrl(network, txhash)
     });
@@ -44,18 +52,22 @@ const notifyMsgDelegate = async (from, to, ticker, amount, txhash, network) => {
 }
 
 const msgUndelegatePattern =
-    "🦐 #undelegation #${network} 🦐\nAddress ${delegator} " +
+    "${emoji} #undelegation #${network} ${emoji}\nAddress ${delegator} " +
     "undelegated ${undelegatedAmount} ${ticker} ${usdPrice} from ${validator}. \n" +
     "${explorerUrl}";
 
 const notifyMsgUndelegate = async (delegator, validator, ticker, amount, txhash, network) => {
+    let undelegateEmoji = "🦐";
+    let usdPrice = tryGetPrice(ticker);
+
     const finalMsg = interpolate(msgUndelegatePattern, {
+        emoji: repeatEmoji(undelegateEmoji, usdPrice),
         network: network.name,
         delegator: shortAddress(delegator),
         undelegatedAmount: formatNum(amount),
         ticker,
         validator,
-        usdPrice: tryInsertPrice(ticker, amount),
+        usdPrice: getUsdPriceString(usdPrice, amount),
         explorerUrl: getExplorerUrl(network, txhash)
     });
     await notify(finalMsg);
@@ -63,38 +75,46 @@ const notifyMsgUndelegate = async (delegator, validator, ticker, amount, txhash,
 
 
 const msgRedelegatePattern =
-    "♻️ #redelegation #${network} ♻️\nAddress ${delegator} " +
+    "${emoji} #redelegation #${network} ${emoji}\nAddress ${delegator} " +
     "redelegated ${redelegatedAmount} ${ticker} ${usdPrice} from ${fromValidator} to ${toValidator}. \n" +
     "${explorerUrl}";
 
 const notifyMsgRedelegate =
     async (delegator, fromValidator, toValidator, ticker, amount, txhash, network) => {
+        let redelegateEmoji = "♻️";
+        let usdPrice = tryGetPrice(ticker);
+
         const finalMsg = interpolate(msgRedelegatePattern, {
+            emoji: repeatEmoji(redelegateEmoji, usdPrice),
             network: network.name,
             delegator: shortAddress(delegator),
             fromValidator,
             toValidator,
             redelegatedAmount: formatNum(amount),
             ticker,
-            usdPrice: tryInsertPrice(ticker, amount),
+            usdPrice: getUsdPriceString(usdPrice, amount),
             explorerUrl: getExplorerUrl(network, txhash)
         });
         await notify(finalMsg);
     }
 
 const cw20TransferPattern =
-    "💲 #tokentransfer #${network} 💲\nAddress ${sender} " +
+    "${emoji} #tokentransfer #${network} ${emoji}\nAddress ${sender} " +
     "transferred ${sentAmount} ${ticker} ${usdPrice} tokens to ${reciever}. \n" +
     "${explorerUrl}";
 
 const notifyCw20Transfer =
     async (sender, reciever, ticker, amount, txhash, network) => {
+        let transferEmoji = "💲";
+        let usdPrice = tryGetPrice(ticker);
+
         let finalMsg = interpolate(cw20TransferPattern, {
+            emoji: repeatEmoji(transferEmoji, usdPrice),       
             network: network.name,
             sender: shortAddress(sender),
             sentAmount: formatNum(amount),
             ticker,
-            usdPrice: tryInsertPrice(ticker, amount),
+            usdPrice: getUsdPriceString(usdPrice, amount),
             reciever: shortAddress(reciever),
             explorerUrl: getExplorerUrl(network, txhash)
         });
@@ -104,26 +124,30 @@ const notifyCw20Transfer =
 
 
 const osmosisSwapPattern =
-    "🔄 #osmosisswap #${network} 🔄\nAddress ${sender} " +
+    "${emoji} #osmosisswap #${network} ${emoji}\nAddress ${sender} " +
     "swapped ${inAmount} ${inTicker} ${inUsdPrice} tokens to ${outAmount} ${outTicker} ${outUsdPrice} \n" +
     "${explorerUrl}";
 
 const notifyOsmosisSwap =
     async (sender, inAmount, inTicker, outAmount, outTicker, txhash, network) => {
-        let inUsdPrice = tryInsertPrice(inTicker, inAmount);
-        let outUsdPrice = tryInsertPrice(outTicker, outAmount);
+        let swapEmoji = "🔄";
+        let inUsdPrice = tryGetPrice(inTicker);
+        let outUsdPrice = tryGetPrice(outTicker);
+        let inUsdPriceString = getUsdPriceString(inUsdPrice, inAmount);
+        let outUsdPriceString = getUsdPriceString(outUsdPrice, outAmount);
         if (inUsdPrice && outUsdPrice)
-            inUsdPrice = "";
+            inUsdPriceString = "";
 
         let finalMsg = interpolate(osmosisSwapPattern, {
+            emoji: repeatEmoji(swapEmoji, inUsdPrice || outUsdPrice),
             network: network.name,
             sender: shortAddress(sender),
             inAmount: formatNum(inAmount),
             inTicker,
-            inUsdPrice,
+            inUsdPrice: inUsdPriceString,
             outAmount: formatNum(outAmount),
             outTicker,
-            outUsdPrice,
+            outUsdPrice: outUsdPriceString,
             explorerUrl: getExplorerUrl(network, txhash)
         });
 
@@ -131,34 +155,43 @@ const notifyOsmosisSwap =
     }
 
 const sifchainSwapPattern =
-    "🔄 #sifchainswap #${network} 🔄\nAddress ${sender} " +
+    "${emoji} #sifchainswap #${network} ${emoji}\nAddress ${sender} " +
     "swapped ${inAmount} ${inTicker} ${inUsdPrice} tokens to ${outAmount} ${outTicker} ${outUsdPrice} \n" +
     "${explorerUrl}";
 
 const notifySifchainSwap =
     async (sender, inAmount, inTicker, outAmount, outTicker, txhash, network) => {
-        let inUsdPrice = tryInsertPrice(inTicker, inAmount);
-        let outUsdPrice = tryInsertPrice(outTicker, outAmount);
+        let swapEmoji = "🔄";
+        let inUsdPrice = tryGetPrice(inTicker);
+        let outUsdPrice = tryGetPrice(outTicker);
+        let inUsdPriceString = getUsdPriceString(inUsdPrice, inAmount);
+        let outUsdPriceString = getUsdPriceString(outUsdPrice, outAmount);
         if (inUsdPrice && outUsdPrice)
-            inUsdPrice = "";
+            inUsdPriceString = "";
 
         let finalMsg = interpolate(sifchainSwapPattern, {
+            emoji: repeatEmoji(swapEmoji, inUsdPrice || outUsdPrice),
             network: network.name,
             sender: shortAddress(sender),
             inAmount: formatNum(inAmount),
             inTicker,
-            inUsdPrice,
+            inUsdPrice: inUsdPriceString,
             outAmount: formatNum(outAmount),
             outTicker,
-            outPrice,
+            outUsdPrice: outUsdPriceString,
             explorerUrl: getExplorerUrl(network, txhash)
         });
 
         await notify(finalMsg);
     }
 
+
+//1 emoji for every 100k usd
+const repeatEmoji = (emoji, price) => emoji.repeat(price && price > 0 ? Math.ceil(price / 100000) : 1);
+const getUsdPriceString = (usdPrice, amount) => usdPrice ? `(USD $${formatNum(usdPrice * amount)})` : "";
+
 const validityPeriod = 1000 * 60 * 30; //30 min
-const tryInsertPrice = (ticker, amount) => {
+const tryGetPrice = (ticker) => {
     if (!priceData.lastUpdated || Date.now() - priceData.lastUpdated > validityPeriod)
         return "";
 
@@ -170,13 +203,12 @@ const tryInsertPrice = (ticker, amount) => {
     if (!coingeckoId)
         return "";
 
-    let price = priceData.prices.get(coingeckoId);
-    return `(USD $${formatNum(price * amount)}) `;
+    return priceData.prices.get(coingeckoId);
 }
 
 const interpolate = (string, args) => {
     Object.keys(args).forEach(arg => {
-        string = string.replace("${" + arg + "}", args[arg])
+        string = string.replaceAll("${" + arg + "}", args[arg])
     });
 
     return string.replace("  ", " ");
