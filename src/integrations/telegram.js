@@ -17,7 +17,7 @@ const notifyMsgSend = async (from, to, ticker, amount, txhash, network) => {
     let sendEmoji = "💲";
 
     let finalMsg = interpolate(msgSendPattern, {
-        emoji: sendEmoji.repeat(getEmojiCount(usdPrice)),
+        emoji: repeatEmoji(sendEmoji, usdPrice),
         network: network.name,
         fromAddress: shortAddress(from),
         sentAmount: formatNum(amount),
