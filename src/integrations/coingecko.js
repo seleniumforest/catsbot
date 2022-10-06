@@ -30,7 +30,7 @@ const updatePrices = async () => {
     }
 }
 
-setInterval(updatePrices, 1000 * 60 / 2);
+setInterval(updatePrices, 1000 * 60 * 5);
 updatePrices();
 
 module.exports = priceData;
