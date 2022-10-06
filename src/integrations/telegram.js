@@ -13,7 +13,7 @@ const msgSendPattern = "${emoji} #transfer #${network} ${emoji}\nAddress ${fromA
     "${explorerUrl}";
 
 const notifyMsgSend = async (from, to, ticker, amount, txhash, network) => {
-    let usdPrice = tryGetPrice(ticker) * amount;
+    let usdPrice = tryGetPrice(ticker);
     let sendEmoji = "💲";
 
     let finalMsg = interpolate(msgSendPattern, {
