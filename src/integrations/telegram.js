@@ -8,8 +8,9 @@ const bot = new Telegraf(config.token);
 if (isProdEnv)
     bot.launch();
 
-const msgSendPattern = "${emoji} #transfer #${network} ${emoji}\nAddress ${fromAddress} " +
-    "sent ${sentAmount} ${ticker} ${usdPrice} to ${toAddress}. \n" +
+const msgSendPattern = "#transfer #${network}\n" +
+    "${emoji} \n" +
+    "Address ${fromAddress} sent ${sentAmount} ${ticker} ${usdPrice} to ${toAddress}. \n" +
     "${explorerUrl}";
 
 const notifyMsgSend = async (from, to, ticker, amount, txhash, network) => {
@@ -30,8 +31,10 @@ const notifyMsgSend = async (from, to, ticker, amount, txhash, network) => {
     await notify(finalMsg);
 }
 
-const msgDelegatePattern = "${emoji} #delegation #${network} ${emoji}\nAddress ${fromAddress} " +
-    "delegated ${delegatedAmount} ${ticker} ${usdPrice} to ${toAddress}. \n" +
+const msgDelegatePattern = 
+    "#delegation #${network} \n" +
+    "${emoji} \n" +
+    "Address ${fromAddress} delegated ${delegatedAmount} ${ticker} ${usdPrice} to ${toAddress}. \n" +
     "${explorerUrl}";
 
 const notifyMsgDelegate = async (from, to, ticker, amount, txhash, network) => {
@@ -52,8 +55,9 @@ const notifyMsgDelegate = async (from, to, ticker, amount, txhash, network) => {
 }
 
 const msgUndelegatePattern =
-    "${emoji} #undelegation #${network} ${emoji}\nAddress ${delegator} " +
-    "undelegated ${undelegatedAmount} ${ticker} ${usdPrice} from ${validator}. \n" +
+    "#undelegation #${network} \n" +
+    "${emoji} \n" +
+    "Address ${delegator} undelegated ${undelegatedAmount} ${ticker} ${usdPrice} from ${validator}. \n" +
     "${explorerUrl}";
 
 const notifyMsgUndelegate = async (delegator, validator, ticker, amount, txhash, network) => {
@@ -74,9 +78,10 @@ const notifyMsgUndelegate = async (delegator, validator, ticker, amount, txhash,
 }
 
 
-const msgRedelegatePattern =
-    "${emoji} #redelegation #${network} ${emoji}\nAddress ${delegator} " +
-    "redelegated ${redelegatedAmount} ${ticker} ${usdPrice} from ${fromValidator} to ${toValidator}. \n" +
+const msgRedelegatePattern = 
+    "#redelegation #${network} \n" +
+    "${emoji} \n" +
+    "Address ${delegator} redelegated ${redelegatedAmount} ${ticker} ${usdPrice} from ${fromValidator} to ${toValidator}. \n" +
     "${explorerUrl}";
 
 const notifyMsgRedelegate =
@@ -99,8 +104,9 @@ const notifyMsgRedelegate =
     }
 
 const cw20TransferPattern =
-    "${emoji} #tokentransfer #${network} ${emoji}\nAddress ${sender} " +
-    "transferred ${sentAmount} ${ticker} ${usdPrice} tokens to ${reciever}. \n" +
+    "#tokentransfer #${network} \n" +
+    "${emoji} \n" +
+    "Address ${sender} transferred ${sentAmount} ${ticker} ${usdPrice} tokens to ${reciever}. \n" +
     "${explorerUrl}";
 
 const notifyCw20Transfer =
@@ -109,7 +115,7 @@ const notifyCw20Transfer =
         let usdPrice = tryGetPrice(ticker);
 
         let finalMsg = interpolate(cw20TransferPattern, {
-            emoji: repeatEmoji(transferEmoji, usdPrice * amount),       
+            emoji: repeatEmoji(transferEmoji, usdPrice * amount),
             network: network.name,
             sender: shortAddress(sender),
             sentAmount: formatNum(amount),
@@ -124,8 +130,9 @@ const notifyCw20Transfer =
 
 
 const osmosisSwapPattern =
-    "${emoji} #osmosisswap #${network} ${emoji}\nAddress ${sender} " +
-    "swapped ${inAmount} ${inTicker} ${inUsdPrice} tokens to ${outAmount} ${outTicker} ${outUsdPrice} \n" +
+    "#osmosisswap #${network} \n" +
+    "${emoji} \n" +
+    "Address ${sender} swapped ${inAmount} ${inTicker} ${inUsdPrice} tokens to ${outAmount} ${outTicker} ${outUsdPrice} \n" +
     "${explorerUrl}";
 
 const notifyOsmosisSwap =
@@ -155,8 +162,9 @@ const notifyOsmosisSwap =
     }
 
 const sifchainSwapPattern =
-    "${emoji} #sifchainswap #${network} ${emoji}\nAddress ${sender} " +
-    "swapped ${inAmount} ${inTicker} ${inUsdPrice} tokens to ${outAmount} ${outTicker} ${outUsdPrice} \n" +
+    "#sifchainswap #${network} \n" +
+    "${emoji} \n" +
+    "Address ${sender} swapped ${inAmount} ${inTicker} ${inUsdPrice} tokens to ${outAmount} ${outTicker} ${outUsdPrice} \n" +
     "${explorerUrl}";
 
 const notifySifchainSwap =
