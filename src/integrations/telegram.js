@@ -17,7 +17,7 @@ const notifyMsgSend = async (from, to, ticker, amount, txhash, network) => {
     let sendEmoji = "💲";
 
     let finalMsg = interpolate(msgSendPattern, {
-        emoji: repeatEmoji(sendEmoji, usdPrice),
+        emoji: repeatEmoji(sendEmoji, usdPrice * amount),
         network: network.name,
         fromAddress: shortAddress(from),
         sentAmount: formatNum(amount),
@@ -39,7 +39,7 @@ const notifyMsgDelegate = async (from, to, ticker, amount, txhash, network) => {
     let usdPrice = tryGetPrice(ticker);
 
     const finalMsg = interpolate(msgDelegatePattern, {
-        emoji: repeatEmoji(delegateEmoji, usdPrice),
+        emoji: repeatEmoji(delegateEmoji, usdPrice * amount),
         network: network.name,
         fromAddress: shortAddress(from),
         delegatedAmount: formatNum(amount),
@@ -61,7 +61,7 @@ const notifyMsgUndelegate = async (delegator, validator, ticker, amount, txhash,
     let usdPrice = tryGetPrice(ticker);
 
     const finalMsg = interpolate(msgUndelegatePattern, {
-        emoji: repeatEmoji(undelegateEmoji, usdPrice),
+        emoji: repeatEmoji(undelegateEmoji, usdPrice * amount),
         network: network.name,
         delegator: shortAddress(delegator),
         undelegatedAmount: formatNum(amount),
@@ -85,7 +85,7 @@ const notifyMsgRedelegate =
         let usdPrice = tryGetPrice(ticker);
 
         const finalMsg = interpolate(msgRedelegatePattern, {
-            emoji: repeatEmoji(redelegateEmoji, usdPrice),
+            emoji: repeatEmoji(redelegateEmoji, usdPrice * amount),
             network: network.name,
             delegator: shortAddress(delegator),
             fromValidator,
@@ -109,7 +109,7 @@ const notifyCw20Transfer =
         let usdPrice = tryGetPrice(ticker);
 
         let finalMsg = interpolate(cw20TransferPattern, {
-            emoji: repeatEmoji(transferEmoji, usdPrice),       
+            emoji: repeatEmoji(transferEmoji, usdPrice * amount),       
             network: network.name,
             sender: shortAddress(sender),
             sentAmount: formatNum(amount),
@@ -139,7 +139,7 @@ const notifyOsmosisSwap =
             inUsdPriceString = "";
 
         let finalMsg = interpolate(osmosisSwapPattern, {
-            emoji: repeatEmoji(swapEmoji, inUsdPrice || outUsdPrice),
+            emoji: repeatEmoji(swapEmoji, (inUsdPrice * inAmount) || (outUsdPrice * outAmount)),
             network: network.name,
             sender: shortAddress(sender),
             inAmount: formatNum(inAmount),
@@ -170,7 +170,7 @@ const notifySifchainSwap =
             inUsdPriceString = "";
 
         let finalMsg = interpolate(sifchainSwapPattern, {
-            emoji: repeatEmoji(swapEmoji, inUsdPrice || outUsdPrice),
+            emoji: repeatEmoji(swapEmoji, (inUsdPrice * inAmount) || (outUsdPrice * outAmount)),
             network: network.name,
             sender: shortAddress(sender),
             inAmount: formatNum(inAmount),
