@@ -195,7 +195,7 @@ const notifySifchainSwap =
 
 
 //1 emoji for every 100k usd
-const repeatEmoji = (emoji, price) => emoji.repeat(price && price > 0 ? Math.min(Math.ceil(price / 300000), 10) : 1);
+const repeatEmoji = (emoji, price) => emoji.repeat(price && price > 0 ? Math.min(Math.ceil(price / 500000), 10) : 1);
 const getUsdPriceString = (usdPrice, amount) => usdPrice ? `(USD $${formatNum(usdPrice * amount)})` : "";
 
 const validityPeriod = 1000 * 60 * 30; //30 min
