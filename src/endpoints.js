@@ -93,6 +93,11 @@ const getChainData = (registryName) => {
 const reportStats = (networkName, rpc, result) => {
     let key = `${networkName}/${rpc}`;
     let endp = endpointRankings[networkName].get(key);
+
+    //todo fix this
+    if (!endp) 
+        return;
+
     endpointRankings[networkName].set(key, result ? { ...endp, ok: ++endp.ok } :
         { ...endp, fail: ++endp.fail });
 }
