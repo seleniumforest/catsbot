@@ -1,8 +1,7 @@
 {
     "env": "prod",
     "token": "1231231212:Qwertyuiopasdfghjkl;xcvbnm1234567890",
-    "channel": "@username",
-    "rpcsTtl": 0.1,
+    "channel": "@channel",
     "registryApis": [
         "https://registry.ping.pub/",
         "https://proxy.atomscan.com/directory/"
@@ -16,7 +15,12 @@
                 {
                     "denom": "uatom",
                     "ticker": "ATOM",
-                    "amount": 10000000000
+                    "coingeckoId": "cosmos",
+                    "amount": 50000000000,
+                    "msgAmounts": {
+                        "msgDelegate": 10000000000,
+                        "msgUndelegate": 10000000000
+                    }
                 }
             ]
         },
@@ -27,12 +31,61 @@
                 {
                     "denom": "uosmo",
                     "ticker": "OSMO",
-                    "amount": 10000000000
+                    "coingeckoId": "osmosis",
+                    "amount": 250000000000,
+                    "msgAmounts": {
+                        "msgDelegate": 50000000000,
+                        "msgUndelegate": 50000000000
+                    }
                 },
                 {
                     "denom": "uion",
                     "ticker": "ION",
-                    "amount": 1000000
+                    "coingeckoId": "ion",
+                    "amount": 25000000
+                },
+                {
+                    "denom": "ibc/27394FB092D2ECCD56123C74F36E4C1F926001CEADA9CA97EA622B25F41E5EB2",
+                    "ticker": "ATOM",
+                    "coingeckoId": "cosmos",
+                    "amount": 50000000000
+                },
+                {
+                    "denom": "ibc/D189335C6E4A68B513C10AB227BF1C1D38C746766278BA3EEB4FB14124F1D858",
+                    "ticker": "USDC.axl",
+                    "amount": 100000000000
+                },
+                {
+                    "denom": "ibc/EA1D43981D5C9A1C4AAEA9C23BB1D4FA126BA9BC7020A25E0AE4AA841EA25DC5",
+                    "ticker": "WETH.axl",
+                    "coingeckoId": "ethereum",
+                    "amount": 10000000000000000000000000,
+                    "decimals": 18
+                },
+                {
+                    "denom": "ibc/C140AFD542AE77BD7DCC83F13FDD8C5E5BB8C4929785E6EC2F4C636F98F17901",
+                    "ticker": "stATOM",
+                    "coingeckoId": "cosmos",
+                    "amount": 2500000000
+                },
+                {
+                    "denom": "ibc/46B44899322F3CD854D2D46DEEF881958467CDD4B3B10086DA49296BBED94BED",
+                    "ticker": "JUNO",
+                    "coingeckoId": "juno-network",
+                    "amount": 5000000000
+                },
+                {
+                    "denom": "ibc/6AE98883D4D5D5FF9E50D7130F1305DA2FFA0C652D1DD9C123657C6B4EB2DF8A",
+                    "ticker": "EVMOS",
+                    "coingeckoId": "evmos",
+                    "amount": 29000000000000000000000,
+                    "decimals": 18
+                },
+                {
+                    "denom": "ibc/0954E1C28EB7AF5B72D24F3BC2B47BBB2FDF91BDDFD57B74B99E133AED40972A",
+                    "ticker": "SCRT",
+                    "coingeckoId": "secret",
+                    "amount": 10000000000
                 }
             ]
         },
@@ -43,12 +96,23 @@
                 {
                     "denom": "ujuno",
                     "ticker": "JUNO",
-                    "amount": 1000000000
+                    "amount": 50000000000,
+                    "coingeckoId": "juno-network",
+                    "msgAmounts": {
+                        "msgDelegate": 20000000000,
+                        "msgUndelegate": 20000000000
+                    }
                 },
                 {
                     "ticker": "NETA",
                     "contract": "juno168ctmpyppk90d34p3jjy658zf5a5l3w8wk35wht6ccqj4mr0yv8s4j5awr",
-                    "amount": 1000000
+                    "amount": 25000000,
+                    "coingeckoId": "neta",
+                    "msgAmounts": {
+                        "msgExecuteContract": 20000000,
+                        "msgDelegate": 5000000,
+                        "msgUndelegate": 5000000
+                    }
                 }
             ]
         },
@@ -58,9 +122,14 @@
             "notifyDenoms": [
                 {
                     "denom": "aevmos",
+                    "coingeckoId": "evmos",
                     "ticker": "EVMOS",
-                    "amount": 10000000000000000000000,
-                    "decimals": 18
+                    "amount": 50000000000000000000000,
+                    "decimals": 18,
+                    "msgAmounts": {
+                        "msgDelegate": 50000000000000000000000,
+                        "msgUndelegate": 50000000000000000000000
+                    }
                 }
             ]
         },
@@ -70,18 +139,48 @@
             "notifyDenoms": [
                 {
                     "denom": "ibc/27394FB092D2ECCD56123C74F36E4C1F926001CEADA9CA97EA622B25F41E5EB2",
-                    "amount": 1000000,
+                    "amount": 900000000,
+                    "coingeckoId": "cosmos",
+                    "ticker": "ATOM"
+                },
+                {
+                    "denom": "cusdc",
+                    "amount": 10000000000,
+                    "ticker": "USDC"
+                },
+                {
+                    "denom": "rowan",
+                    "amount": 10000000000000000000000000000,
+                    "coingeckoId": "sifchain",
+                    "decimals": 18,
                     "msgAmounts": {
-                        "msgSifchainSwap": 10000000
+                        "msgSifchainSwap": 2120000000000000000000000
                     }
-                },
+                }
+            ]
+        },
+        {
+            "name": "kujira",
+            "notifyDenoms": [
                 {
-                    "denom": "ibc/B4314D0E670CB43C88A5DCA09F76E5E812BD831CC2FEC6E434C9E5A9D1F57953",
-                    "amount": 1000000
-                },
+                    "denom": "ukuji",
+                    "coingeckoId": "kujira",
+                    "ticker": "KUJI",
+                    "amount": 100000000000,
+                    "decimals": 6
+                }
+            ]
+        },
+        {
+            "name": "umee",
+            "validatorsApi": "https://api-umee.cosmostation.io/v1/staking/validators",
+            "notifyDenoms": [
                 {
-                    "denom": "ibc/F279AB967042CAC10BFF70FAECB179DCE37AAAE4CD4C1BC4565C2BBC383BC0FA",
-                    "amount": 1000000
+                    "denom": "uumee",
+                    "ticker": "UMEE",
+                    "coingeckoId": "umee",
+                    "amount": 1000000000000,
+                    "decimals": 6
                 }
             ]
         }

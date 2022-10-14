@@ -1,4 +1,4 @@
-# catsbot for Cosmos Cats
+# Whale Cat for Cosmos Cats
 
 Cosmos cats community https://t.me/cosmoscats
 
@@ -48,7 +48,7 @@ Supported msg types
   
       ``` pm2 start ecosystem.config.js --network=cosmos ```
       
-  - If your script was offline for a long time, you can skip checking missed blocks  
+  - If your script was offline for a long time, you can skip checking missed blocks. But remember that script will skip checking missed blocks, if last block was more than 15 min ago. 
   
       ``` pm2 start ecosystem.config.js --network=cosmos --clean=true ```
       
@@ -67,5 +67,5 @@ Supported msg types
 - [x] Osmosis whale swaps
 - [x] Custom amounts for each message on each denom
 - [x] Show Prices in USD
-- [ ] Add Secret network
-- [ ] Add IBC-txs
+- [?] Add Secret network
+- [?] Add IBC-txs
