@@ -22,6 +22,12 @@
         let errorEl = document.createElement("p");
         errorEl.innerText =  "ERROR LOGS \n" + dataLogs.errlog;
         document.body.append(errorEl);
+
+        let respPrices = await fetch("/prices");
+        let pricesData = await respPrices.json();
+        let pricesEl = document.createElement("p");
+        errorEl.innerText =  "CURRENT PRICES: \n" + JSON.stringify(pricesData);
+        document.body.append(pricesEl);
     })();
 </script>
 
