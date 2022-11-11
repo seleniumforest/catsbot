@@ -58,8 +58,7 @@ const processNetwork = (network) => {
                 continue;
             }
             //if last block was more than 5 min ago, skip missed blocks 
-            let isBlockOutdated =
-                Math.abs(dateToUnix(lastProcessedData.time) - dateToUnix(newHeightTime)) > 300;
+            let isBlockOutdated = dateToUnix(newHeightTime) - dateToUnix(lastProcessedData.time) > 300;
             if (isBlockOutdated) {
                 console.warn(`${network.name} BLOCK ${lastProcessedData?.height} IS OUTDATED`)
                 yield processNewHeight(network, newHeight, newHeightTime);
