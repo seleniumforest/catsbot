@@ -4,16 +4,14 @@
 </body>
 <script>
     (async () => {
-        let resp = await fetch("/status");
-        let data = await resp.json();
+        let data = await (await fetch("/status")).json();
         for (let network of data.filter(x => x)) {
             let el = document.createElement("p");
             el.innerText = `Network: ${network.network} last block: ${network.height} time: ${new Date(network.time)}`;
             document.body.append(el);
         }
 
-        let respLogs = await fetch("/logs");
-        let dataLogs = await respLogs.json();
+        let dataLogs = await (await fetch("/logs")).json();
 
         let outEl = document.createElement("p");
         outEl.innerText = "OUT LOGS \n" + dataLogs.outlog;
@@ -23,10 +21,9 @@
         errorEl.innerText =  "ERROR LOGS \n" + dataLogs.errlog;
         document.body.append(errorEl);
 
-        let respPrices = await fetch("/prices");
-        let pricesData = await respPrices.json();
+        let pricesData = await (await fetch("/prices")).json();
         let pricesEl = document.createElement("p");
-        errorEl.innerText =  "CURRENT PRICES: \n" + JSON.stringify(pricesData);
+        pricesEl.innerText =  "CURRENT PRICES: \n" + JSON.stringify(pricesData);
         document.body.append(pricesEl);
     })();
 </script>
