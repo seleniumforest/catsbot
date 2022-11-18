@@ -8,6 +8,9 @@ const bot = new Telegraf(config.token);
 if (isProdEnv)
     bot.launch();
 
+process.once('SIGINT', () => bot.stop('SIGINT'));
+process.once('SIGTERM', () => bot.stop('SIGTERM'));
+
 const msgSendPattern = "#transfer #${network}\n" +
     "${emoji} \n" +
     "Address ${fromAddress} sent ${sentAmount} ${ticker} ${usdPrice} to ${toAddress}. \n" +
@@ -31,7 +34,7 @@ const notifyMsgSend = async (from, to, ticker, amount, txhash, network) => {
     await notify(finalMsg);
 }
 
-const msgDelegatePattern = 
+const msgDelegatePattern =
     "#delegation #${network} \n" +
     "${emoji} \n" +
     "Address ${fromAddress} delegated ${delegatedAmount} ${ticker} ${usdPrice} to ${toAddress}. \n" +
@@ -78,7 +81,7 @@ const notifyMsgUndelegate = async (delegator, validator, ticker, amount, txhash,
 }
 
 
-const msgRedelegatePattern = 
+const msgRedelegatePattern =
     "#redelegation #${network} \n" +
     "${emoji} \n" +
     "Address ${delegator} redelegated ${redelegatedAmount} ${ticker} ${usdPrice} from ${fromValidator} to ${toValidator}. \n" +

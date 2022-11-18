@@ -2,7 +2,7 @@ const { getSifchainRegistry, fromBaseUnit } = require("../helpers");
 const Big = require('big.js');
 const { default: axios } = require("axios");
 const { notifySifchainSwap } = require("../integrations/telegram");
-const { assets } = require("../../chain-specific/sifchain/assets.json");
+const { assets: localAssets } = require("../../chain-specific/sifchain/assets.json");
 const NodeCache = require("node-cache");
 const msgTrigger = "msgSifchainSwap";
 
@@ -35,31 +35,34 @@ const handleMsgSifchainSwap = async (network, msg, tx, msgLog) => {
         );
 }
 
+
+//todo move asset dictionaries into db
 const assetsCache = new NodeCache({
     stdTTL: 60 * 3600 * 24
 })
 
-let fetchSifchainAssets = async () => {
+ const fetchSifchainAssets = async () => {
     let key = "assets";
     if (assetsCache.has(key))
         return assetsCache.get(key)
 
-    try {
-        let { data: { assets: mintscanAssets } } =
-            await axios.get("https://api.mintscan.io/v2/assets/sifchain", {
-                headers: {
-                    "Origin": "https://www.mintscan.io",
-                    "Referer": "https://www.mintscan.io/"
-                }
-            });
+    // mintscan throws a lot of errors and bans by ip
+    // try {
+    //     let { data: { assets: mintscanAssets } } =
+    //         await axios.get("https://api.mintscan.io/v2/assets/sifchain", {
+    //             headers: {
+    //                 "Origin": "https://www.mintscan.io",
+    //                 "Referer": "https://www.mintscan.io/"
+    //             }
+    //         });
 
-        let allAssets = mintscanAssets?.length > 0 ? mintscanAssets : assets;
-        assetsCache.set(key, allAssets)
-        return allAssets;
-    }
-    catch (err) { console.log(`Error fetching sifchain assets ${err?.message}`) }
+    //     let fetchedAssets = mintscanAssets?.length > 0 ? mintscanAssets : localAssets;
+    //     assetsCache.set(key, fetchedAssets)
+    //     return fetchedAssets;
+    // }
+    // catch (err) { console.log(`Error fetching sifchain assets ${err?.message}`) }
 
-    return assets;
+    return localAssets;
 }
 
 module.exports = handleMsgSifchainSwap;

@@ -1,39 +1,18 @@
 const { default: axios } = require("axios");
-const { co } = require("co");
 const config = require("../config.json");
 const { chains } = require('chain-registry');
+const NoEndpointsRecievedErr = require("./errors");
 
 const minRequestsToTest = 20;
 const minSuccessRate = 0.85;
+const oldBlockMs = 60000;
 let endpointRankings = {};
 
 const registerNetwork = async (network) => {
-    let name = network.name;
     let regName = network.registryName;
-    let chainData = await registerEndpoints(regName, name);
-
-    setInterval(() => {
-        registerEndpoints(regName, name)
-    }, 1000 * 60 * 60 * (config?.rpcsTtl || 1));
-
-    return chainData;
-}
-
-const registerEndpoints = async (regName, name) => {
-    let current = [...endpointRankings[name]?.entries() ?? []];
-    console.log(`endpoints for ${name}: ${JSON.stringify(current)}`);
+    let name = network.name;
 
     let chainData = await getChainData(regName || name);
-    let newEndpointsRecieved = !chainData.endpoints
-        .every(x => current.map(([_, { address }]) => address).includes(x.address));
-
-    if (!newEndpointsRecieved)
-        return;
-
-    if (!chainData?.endpoints?.length || chainData.endpoints.length === 0) {
-        console.warn("No endpoints");
-        return;
-    }
 
     endpointRankings[name] = new Map();
     chainData.endpoints.forEach(end => {
@@ -44,64 +23,73 @@ const registerEndpoints = async (regName, name) => {
     return chainData;
 }
 
-const getChainData = (registryName) => {
-    return co(function* () {
-        let chainInfo = null;
+const getChainData = async (registryName) => {
+    let chainInfo = null;
 
-        for (let api of config.registryApis) {
-            try {
-                chainInfo = yield axios.get(`${api}/${registryName}/chain.json`);
-                break;
-            } catch (err) { }
+    for (let api of config.registryApis) {
+        let url = `${api}/${registryName}/chain.json`;
+        try {
+            let { data } = await axios.get(url);
+            chainInfo = data;
+            break;
+        } catch (err) { 
+            console.warn(`Getting chainData for ${registryName}: ${url} is dead`);
+            chainInfo = chains.find(chain => chain.chain_name === registryName);
         }
+    }
 
-        chainInfo = chainInfo?.data ||
-            chains.find(chain => chain.chain_name === registryName);
+    console.log(`Checking rpcs availability for ${registryName}`);
+    let aliveRpcs = await filterAliveRpcs(chainInfo.apis.rpc);
+    if (!aliveRpcs?.length || aliveRpcs.length === 0) 
+        throw NoEndpointsRecievedErr(registryName);
 
-        console.log(`Checking rpcs availability for ${registryName}`);
+    console.log(`Alive enpoints for ${registryName}: ${JSON.stringify(aliveRpcs)}`);
 
-        let aliveRpcs = yield chainInfo.apis.rpc.map(rpc => {
-            return axios({
+    return {
+        endpoints: aliveRpcs,
+        explorers: chainInfo.explorers
+    }
+};
+
+const filterAliveRpcs = async (rpcs) => {
+    let aliveRpcs = await Promise.all(rpcs.map(async (rpc) => {
+        try {
+            let response = await axios({
                 method: "GET",
                 url: `${rpc.address}/status`,
                 timeout: 5000
-            }).then(response => {
-                if (!response || response.status !== 200)
-                    return;
-
-                let blockTime = Date.parse(response.data.result.sync_info.latest_block_time);
-                let now = Date.now();
-                if (Math.abs(now - blockTime) < 60000) {
-                    console.log(`${rpc.address} is alive, sync block ${response.data.result.sync_info.latest_block_height}`);
-                    return rpc;
-                }
-
-                console.log(`${rpc.address} is alive, but not synced`);
-            }).catch((err) => {
-                console.log(`${rpc.address} is dead. Error ${err?.message}`);
-                //todo make 2nd request
             });
-        });
 
-        return yield {
-            endpoints: aliveRpcs.filter(x => !!x),
-            explorers: chainInfo.explorers
-        }
-    })
-};
+            if (!response || response.status !== 200)
+                return;
+
+            let blockTime = Date.parse(response?.data?.result?.sync_info?.latest_block_time);
+            let now = Date.now();
+            if (Math.abs(now - blockTime) < oldBlockMs) {
+                //console.log(`${rpc.address} is alive, sync block ${response.data.result.sync_info.latest_block_height}`);
+                return rpc;
+            }
+
+            //console.log(`${rpc.address} is alive, but not synced`);
+        } catch (err) { console.log(`${rpc.address} is dead. Error ${err?.message}`) }
+    }));
+
+    return aliveRpcs.filter(x => !!x);
+}
 
 const reportStats = (networkName, rpc, result) => {
     let key = `${networkName}/${rpc}`;
     let endp = endpointRankings[networkName].get(key);
 
     //todo fix this
-    if (!endp) 
+    if (!endp)
         return;
 
     endpointRankings[networkName].set(key, result ? { ...endp, ok: ++endp.ok } :
         { ...endp, fail: ++endp.fail });
 }
 
+//<magic>
 const getEndpoints = (networkName) => {
     let result = [...endpointRankings[networkName].entries()]
         .filter(([k]) => k.startsWith(networkName))
@@ -127,6 +115,7 @@ const getEndpoints = (networkName) => {
             return (a.ok / (a.fail || 1)) > (b.ok / (b.fail || 1)) ? 1 : 0;
         });
 };
+//</magic>
 
 module.exports = {
     reportStats,

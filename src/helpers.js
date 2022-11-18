@@ -41,10 +41,7 @@ const getValidatorMoniker = async (network, validatorAddress) => {
     let profile = allProfiles
         .find(x => x.operator_address === address);
 
-    if (profile)
-        return profile?.moniker;
-
-    return shortAddress(address);
+    return profile?.moniker || shortAddress(address);
 }
 
 const getDenomConfig = (network, denom, msgTrigger) => {

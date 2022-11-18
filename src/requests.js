@@ -4,10 +4,12 @@ const { reportStats, getEndpoints } = require("./endpoints");
 const { fromBase64 } = require("@cosmjs/encoding");
 const { Int53 } = require("@cosmjs/math");
 const { CosmWasmClient } = require("@cosmjs/cosmwasm-stargate");
+const { CantGetNewBlockErr, CantGetCw20TokenInfoErr } = require("./errors");
 
+//todo move tokens and validator dictionaries into db
 const tokensCache = new NodeCache();
 const validatorsCache = new NodeCache({
-    stdTTL: 60 * 60 * 12 //12 hours in seconds
+    stdTTL: 60 * 60 * 12 //12 hours
 });
 
 const getValidatorProfiles = async (networkName, validatorsApi) => {
@@ -46,7 +48,8 @@ const tryParseJson = (data) => {
 }
 
 const getTxsInBlock = async (networkName, height) => {
-    let endpoints = getEndpoints(networkName)
+    let endpoints = getEndpoints(networkName);
+
     for (const { address: rpc } of endpoints) {
         try {
             let allTxs = []
@@ -84,14 +87,14 @@ const getTxsInBlock = async (networkName, height) => {
         }
     }
 
+    //!!!probably!!!, there's no txs in blocks
     return [];
 }
 
 const pollForLatestHeight = async (networkName) => {
-    let requests = [];
     let endpoints = getEndpoints(networkName);
 
-    endpoints.map(e => requests.push(async () => {
+    let results = await Promise.all(endpoints.map(async (e) => {
         let url = `${e.address}/status`
         let { data } = await axios({
             method: "GET",
@@ -99,17 +102,10 @@ const pollForLatestHeight = async (networkName) => {
             timeout: 5000
         });
 
-        return data;
+        return data.result.sync_info.latest_block_height;
     }));
 
-    let results = await Promise.all(requests.map(r => r()));
-    let bestOption = 0;
-    for (let response of results) {
-        let height = parseInt(response.result.sync_info.latest_block_height);
-        if (height > bestOption)
-            bestOption = height;
-    }
-    return bestOption;
+    return Math.max(...results);
 }
 
 const getNewHeight = async (networkName, lastHeight) => {
@@ -139,7 +135,7 @@ const getNewHeight = async (networkName, lastHeight) => {
         }
     }
 
-    console.warn(`Couldn't get new height for network ${networkName} with endpoints set ${JSON.stringify(endpoints)}`);
+    throw CantGetNewBlockErr(networkCtx.name, chainData.endpoints);
 };
 
 const getCw20TokenInfo = async (network, contract) => {
@@ -159,6 +155,8 @@ const getCw20TokenInfo = async (network, contract) => {
             console.log("failed to fetch cw20 token info " + JSON.stringify(err));
         }
     }
+
+    throw CantGetCw20TokenInfoErr(network.name, contract);
 }
 
 module.exports = {

@@ -14,7 +14,7 @@ const saveProcessedTx = async (networkName, height, txHash) => {
         });
 }
 
-const createEmptyBlock = async (networkName, height, time) => {
+const saveProcessedBlock = async (networkName, height, time) => {
     await db.ref(`${networkName}/block`)
         .transaction(() => ({
             network: networkName,
@@ -34,6 +34,6 @@ const getLastProcessedTxs = async (networkName) => {
 module.exports = {
     saveProcessedTx,
     getLastProcessedTxs,
-    createEmptyBlock,
+    saveProcessedBlock,
     dbReady
 }
