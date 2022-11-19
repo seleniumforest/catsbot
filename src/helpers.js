@@ -4,7 +4,8 @@ const { defaultRegistryTypes } = require("@cosmjs/stargate");
 const big = require("big.js");
 const osmojs = require("osmojs");
 const { getValidatorProfiles } = require("./requests");
-const sifchainDecoder = require("../chain-specific/sifchain/tx")
+const sifchainDecoder = require("../chain-specific/sifchain/tx");
+const { getValidatorByAddress, saveValidator } = require("./db");
 
 const fromBaseUnit = (amount, decimals = 6, fractionDigits = 2) => {
     if (!amount)
@@ -36,12 +37,25 @@ const shortAddress = (addr, start = 9, end = 4) =>
 const fromBase64 = (decoded) => Buffer.from(decoded, 'base64').toString();
 
 const getValidatorMoniker = async (network, validatorAddress) => {
-    let allProfiles = await getValidatorProfiles(network.name, network.validatorsApi);
-    let address = validatorAddress?.toString();
-    let profile = allProfiles
-        .find(x => x.operator_address === address);
+    let targetProfile = await getValidatorByAddress(network.name, validatorAddress);
 
-    return profile?.moniker || shortAddress(address);
+    if (!targetProfile) {
+        let allProfiles = await getValidatorProfiles(network.validatorsApi);
+        for (let p of allProfiles) {
+            await saveValidator(
+                network.name, 
+                { 
+                    network: network.name, 
+                    address: p.operator_address, 
+                    moniker: p.moniker
+                });
+            
+            if (p.operator_address === validatorAddress)
+                targetProfile = p;
+        }
+    }
+
+    return targetProfile?.moniker || shortAddress(address);
 }
 
 const getDenomConfig = (network, denom, msgTrigger) => {
@@ -59,9 +73,9 @@ const getDenomConfig = (network, denom, msgTrigger) => {
     }
 }
 
-const dateToUnix = (dateStr) =>  
+const dateToUnix = (dateStr) =>
     Math.floor(new Date(dateStr).getTime() / 1000)
- 
+
 module.exports = {
     fromBaseUnit,
     getDefaultRegistry,

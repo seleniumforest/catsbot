@@ -1,7 +1,7 @@
 const { default: axios } = require("axios");
 const config = require("../config.json");
 const { chains } = require('chain-registry');
-const NoEndpointsRecievedErr = require("./errors");
+const { NoEndpointsRecievedErr } = require("./errors");
 
 const minRequestsToTest = 20;
 const minSuccessRate = 0.85;
@@ -32,16 +32,15 @@ const getChainData = async (registryName) => {
             let { data } = await axios.get(url);
             chainInfo = data;
             break;
-        } catch (err) { 
-            console.warn(`Getting chainData for ${registryName}: ${url} is dead`);
+        } catch (err) {
+            //console.warn(`Getting chainData for ${registryName}: ${url} is dead`);
             chainInfo = chains.find(chain => chain.chain_name === registryName);
         }
     }
 
-    console.log(`Checking rpcs availability for ${registryName}`);
     let aliveRpcs = await filterAliveRpcs(chainInfo.apis.rpc);
-    if (!aliveRpcs?.length || aliveRpcs.length === 0) 
-        throw NoEndpointsRecievedErr(registryName);
+    if (!aliveRpcs?.length || aliveRpcs.length === 0)
+        throw new NoEndpointsRecievedErr(registryName);
 
     console.log(`Alive enpoints for ${registryName}: ${JSON.stringify(aliveRpcs)}`);
 
@@ -52,7 +51,9 @@ const getChainData = async (registryName) => {
 };
 
 const filterAliveRpcs = async (rpcs) => {
-    let aliveRpcs = await Promise.all(rpcs.map(async (rpc) => {
+    let aliveRpcs = [];
+
+    for (let rpc of rpcs) {
         try {
             let response = await axios({
                 method: "GET",
@@ -61,20 +62,23 @@ const filterAliveRpcs = async (rpcs) => {
             });
 
             if (!response || response.status !== 200)
-                return;
+                continue;
 
             let blockTime = Date.parse(response?.data?.result?.sync_info?.latest_block_time);
             let now = Date.now();
             if (Math.abs(now - blockTime) < oldBlockMs) {
                 //console.log(`${rpc.address} is alive, sync block ${response.data.result.sync_info.latest_block_height}`);
-                return rpc;
+                aliveRpcs.push(rpc);
+                continue;
             }
 
             //console.log(`${rpc.address} is alive, but not synced`);
-        } catch (err) { console.log(`${rpc.address} is dead. Error ${err?.message}`) }
-    }));
+        } catch (err) {
+            //console.log(`${rpc.address} is dead. Error ${err?.message}`) 
+        }
+    }
 
-    return aliveRpcs.filter(x => !!x);
+    return aliveRpcs;
 }
 
 const reportStats = (networkName, rpc, result) => {

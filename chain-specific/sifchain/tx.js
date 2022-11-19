@@ -1,4 +1,4 @@
-//extracted from compiled sources https://github.com/Sifchain/sifchain-ui (core/)
+//extracted from compiled protobuf sources https://github.com/Sifchain/sifchain-ui (core/)
 const { Reader } = require("protobufjs");
 
 const Asset = {

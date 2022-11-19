@@ -2,7 +2,7 @@ const { fromBaseUnit, getOsmosisRegistry, fromBase64, shortAddress } = require("
 const { notifyOsmosisSwap } = require("../integrations/telegram");
 const Big = require('big.js');
 const { default: axios } = require("axios");
-const assetlist = require("../../chain-specific/osmosis/assets.json").assets;
+const { getTokenByDenom } = require("../db");
 const msgTrigger = "msgSwapExactAmountIn";
 
 const handleMsgSwapExactAmountIn = async (network, msg, tx) => {
@@ -80,21 +80,20 @@ const parseOutCoin = async (swappedCoin) => {
 
     let amount = swappedCoin.substring(0, separatorIndex);
     let denom = swappedCoin.substring(separatorIndex, swappedCoin.length);
-    let { ticker, decimals, sourceDenom } = await searchInfoByDenom(denom);
+    let { ticker, decimals } = await searchInfoByDenom(denom);
 
     return {
         outAmount: amount,
         outTicker: ticker,
-        decimals,
-        sourceDenom
+        decimals
     }
 }
 
 const searchInfoByDenom = async (denom) => {
-    //try search in assetlist.json
-    let assetListResult = searchDenomInAssetList(assetlist, denom);
-    if (assetListResult)
-        return assetListResult;
+    //try search in local db
+    let localdbResult = await getTokenByDenom("osmosis", denom);
+    if (localdbResult)
+        return localdbResult;
 
     //try fetch from github
     try {
@@ -127,7 +126,6 @@ const searchDenomInAssetList = (list, denom) => {
     let resultFromAssetlist = list?.find(x => x.base === denom);
     if (resultFromAssetlist) {
         return {
-            sourceDenom: resultFromAssetlist?.ibc?.source_denom,
             ticker: resultFromAssetlist?.symbol,
             decimals: resultFromAssetlist?.denom_units
                 .find(x => x.denom.toLowerCase() === resultFromAssetlist?.symbol?.toLowerCase() ||

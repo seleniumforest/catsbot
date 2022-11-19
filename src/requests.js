@@ -1,25 +1,13 @@
 const axios = require("axios");
-const NodeCache = require("node-cache");
 const { reportStats, getEndpoints } = require("./endpoints");
 const { fromBase64 } = require("@cosmjs/encoding");
 const { Int53 } = require("@cosmjs/math");
 const { CosmWasmClient } = require("@cosmjs/cosmwasm-stargate");
 const { CantGetNewBlockErr, CantGetCw20TokenInfoErr } = require("./errors");
+const { getTokenByDenom, saveToken } = require("./db");
 
-//todo move tokens and validator dictionaries into db
-const tokensCache = new NodeCache();
-const validatorsCache = new NodeCache({
-    stdTTL: 60 * 60 * 12 //12 hours
-});
-
-const getValidatorProfiles = async (networkName, validatorsApi) => {
-    let cached = validatorsCache.get(networkName);
-    if (cached)
-        return cached;
-
-    if (!validatorsApi)
-        return [];
-
+const getValidatorProfiles = async (validatorsApi) => {
+    console.log(`Fetching validator profiles from ${validatorsApi}`);
     try {
         let profiles = await axios.get(validatorsApi, {
             headers: {
@@ -27,12 +15,11 @@ const getValidatorProfiles = async (networkName, validatorsApi) => {
                 "Referer": "https://www.mintscan.io/"
             }
         });
-        validatorsCache.set(networkName, profiles.data);
+        
         return profiles.data;
     }
     catch (err) {
         console.log("failed to fetch validators " + JSON.stringify(err));
-        return [];
     }
 }
 
@@ -139,16 +126,17 @@ const getNewHeight = async (networkName, lastHeight) => {
 };
 
 const getCw20TokenInfo = async (network, contract) => {
-    if (tokensCache.has(contract)) {
-        return tokensCache.get(contract);
-    }
+    let savedToken = getTokenByDenom(network.name, contract);
+    if (savedToken)
+        return savedToken;
 
+    console.log(`Fetching token on ${network} ${contract}`)
     for (const { address: rpc } of getEndpoints(network.name)) {
         try {
             let client = await CosmWasmClient.connect(rpc);
             let info = await client.queryContractSmart(contract, { "token_info": {} });
 
-            tokensCache.set(contract, info);
+            await saveToken(network.name, { contract, ...info })
             return info;
         }
         catch (err) {

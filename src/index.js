@@ -1,6 +1,6 @@
 const { decodeTxRaw } = require("@cosmjs/proto-signing");
 const config = require("../config.json");
-const { getLastProcessedTxs, dbReady, saveProcessedBlock } = require("./db");
+const { getLastProcessedBlock, dbReady, saveProcessedBlock } = require("./db");
 const msgHandlers = require("./messages");
 const { getTxsInBlock, getNewHeight } = require("./requests");
 const { registerNetwork } = require("./endpoints");
@@ -40,6 +40,7 @@ const processNewHeight = async (network, newHeight, time) => {
 }
 
 const processNetwork = async (net) => {
+    console.log(`Starting network ${net.name}`);
     let chainData = await registerNetwork(net);
     let networkCtx = { ...net, ...chainData };
     let cleanMode = args.clean === "true";
@@ -47,7 +48,7 @@ const processNetwork = async (net) => {
     //yield processNewHeight(network, 12326122, new Date().toString());
 
     while (true) {
-        let lastProcessedData = await getLastProcessedTxs(networkCtx.name);
+        let lastProcessedData = await getLastProcessedBlock(networkCtx.name);
         let newHeightData = await getNewHeight(networkCtx.name, lastProcessedData?.height);
 
         let newHeight = newHeightData?.newHeight;
@@ -83,17 +84,16 @@ const processNetwork = async (net) => {
         config.networks.filter(x => x.name === args.network) :
         config.networks;
 
-    Promise.all(networks.map(async (net) => {
+    await Promise.all(networks.map(async (net) => {
         while (true) {
-            await processNetwork(net);
-            // try {
-            //     let result = await processNetwork(net);
-            //     console.log(`task ended with result ${result}`);
-            // } catch (err) {              
-            //     console.log(err?.message);
-            //     //todo handle all types of errors from errors.js with instanceof
-            //     await new Promise(res => setTimeout(res, 60000));
-            // }
+            try {
+                let result = await processNetwork(net);
+                console.log(`task ended with result ${result}`);
+            } catch (err) {              
+                console.log(err?.message);
+                //todo handle all types of errors from errors.js using instanceof
+                await new Promise(res => setTimeout(res, 60000));
+            }
         }
     }));
 })().catch(err => console.log(err));

@@ -54,6 +54,8 @@ Supported msg types
       
 ## Monitoring
 
+    Monitoring page loads on 3000 port
+
   - Show stats 
   
       ``` pm2 list ```
