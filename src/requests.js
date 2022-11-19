@@ -21,6 +21,8 @@ const getValidatorProfiles = async (validatorsApi) => {
     catch (err) {
         console.log("failed to fetch validators " + JSON.stringify(err));
     }
+
+    return [];
 }
 
 const apiToSmallInt = (input) => {
