@@ -9,6 +9,7 @@ const handleMsgSifchainSwap = async (network, msg, tx, msgLog) => {
     let recievedAmount = msgLog.events
         .find(x => x.type === "swap_successful")?.attributes
         .find(x => x.key === "swap_amount")?.value;
+
     let allAssets = await getSifchainTokens();
 
     let sentAssetMatch = network.notifyDenoms.find(x => x.denom === sentAsset.symbol);
@@ -24,10 +25,10 @@ const handleMsgSifchainSwap = async (network, msg, tx, msgLog) => {
         receivedAssetMatch && new Big(recievedAmount).gte(new Big(recievedAssetTreshold)))
         notifySifchainSwap(
             signer,
-            fromBaseUnit(sentAmount, sentAssetInfo?.decimal),
-            sentAssetInfo?.dp_denom || sentAsset.symbol.toUpperCase(),
-            fromBaseUnit(recievedAmount, receivedAssetInfo?.decimal),
-            receivedAssetInfo?.dp_denom || receivedAsset.symbol.toUpperCase(),
+            fromBaseUnit(sentAmount, sentAssetInfo?.decimals),
+            sentAssetInfo?.ticker || sentAsset.symbol.toUpperCase(),
+            fromBaseUnit(recievedAmount, receivedAssetInfo?.decimals),
+            receivedAssetInfo?.ticker || receivedAsset.symbol.toUpperCase(),
             tx.hash,
             network
         );

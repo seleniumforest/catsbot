@@ -1,6 +1,6 @@
 const express = require('express');
 const config = require("../../config.json");
-const { getLastProcessedTxs } = require('../db');
+const { getLastProcessedBlock } = require('../db');
 const path = require('path')
 const readLastLines = require('read-last-lines');
 const priceData = require('../integrations/coingecko');
@@ -11,7 +11,7 @@ app.use(express.json());
 app.use('/', express.static(path.join(__dirname, 'public')))
 
 app.get('/status', function (_, response) {
-    Promise.all(config.networks.map(x => getLastProcessedTxs(x.name)))
+    Promise.all(config.networks.map(x => getLastProcessedBlock(x.name)))
         .then((data) => {
             response.send(data)
         });

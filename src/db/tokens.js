@@ -38,7 +38,7 @@ const getSifchainTokens = async () => {
     let data = await db.ref(`sifchain/tokens`)
         .get();
 
-    return data.val();
+    return Object.entries(data.val()).map(([_, val]) => val);
 }
 
 const loadSifchainTokensFromFile = async () => {
