@@ -6,23 +6,24 @@ const { CosmWasmClient } = require("@cosmjs/cosmwasm-stargate");
 const { CantGetNewBlockErr, CantGetCw20TokenInfoErr } = require("./errors");
 const { getTokenByDenom, saveToken } = require("./db");
 
-const getValidatorProfiles = async (validatorsApi) => {
-    console.log(`Fetching validator profiles from ${validatorsApi}`);
-    try {
-        let profiles = await axios.get(validatorsApi, {
-            headers: {
-                "Origin": "https://www.mintscan.io",
-                "Referer": "https://www.mintscan.io/"
-            }
-        });
-        
-        return profiles.data;
-    }
-    catch (err) {
-        console.log("failed to fetch validators " + JSON.stringify(err));
-    }
+const getValidatorInfo = async (networkName, valoperAddress) => {
+    let endpoints = getEndpoints(networkName, "rest");
 
-    return [];
+    for (let { address } of endpoints) {
+        try {
+            let url = `${address}/cosmos/staking/v1beta1/validators/${valoperAddress}`;
+            let response = await axios.get(url);
+            let moniker = response?.data?.validator?.description?.moniker;
+
+            if (moniker)
+                return {
+                    moniker,
+                    network: networkName,
+                    address: valoperAddress
+                }
+
+        } catch (err) { console.warn(`Failed to fetch moniker for ${valoperAddress}`) }
+    }
 }
 
 const apiToSmallInt = (input) => {
@@ -37,7 +38,7 @@ const tryParseJson = (data) => {
 }
 
 const getTxsInBlock = async (networkName, height) => {
-    let endpoints = getEndpoints(networkName);
+    let endpoints = getEndpoints(networkName, "rpc");
 
     for (const { address: rpc } of endpoints) {
         try {
@@ -55,7 +56,7 @@ const getTxsInBlock = async (networkName, height) => {
 
                 totalTxs = parseInt(total_count);
                 //todo write fail if node returns empty txs list when it's not empty
-                reportStats(networkName, rpc, true);
+                reportStats(networkName, rpc, "rpc", true);
                 allTxs.push(...pageTxs);
             }
             while (allTxs.length < totalTxs)
@@ -72,7 +73,7 @@ const getTxsInBlock = async (networkName, height) => {
                 return result;
         } catch (err) {
             console.log(`Error fetching txs in ${networkName}/${height} rpc ${rpc} error : ${err?.message}`);
-            reportStats(networkName, rpc, false);
+            reportStats(networkName, rpc, "rpc", false);
         }
     }
 
@@ -81,7 +82,7 @@ const getTxsInBlock = async (networkName, height) => {
 }
 
 const pollForLatestHeight = async (networkName) => {
-    let endpoints = getEndpoints(networkName);
+    let endpoints = getEndpoints(networkName, "rpc");
 
     let results = await Promise.all(endpoints.map(async (e) => {
         let url = `${e.address}/status`
@@ -101,7 +102,7 @@ const getNewHeight = async (networkName, lastHeight) => {
     if (!lastHeight)
         lastHeight = await pollForLatestHeight(networkName);
 
-    let endpoints = getEndpoints(networkName);
+    let endpoints = getEndpoints(networkName, "rpc");
     for (const { address: rpc } of endpoints) {
         try {
             let url = `${rpc}/status`
@@ -111,7 +112,7 @@ const getNewHeight = async (networkName, lastHeight) => {
                 timeout: 5000
             });
 
-            reportStats(networkName, rpc, true);
+            reportStats(networkName, rpc, "rpc", true);
             let newHeight = parseInt(data.result.sync_info.latest_block_height);
             if (newHeight >= lastHeight)
                 return {
@@ -120,11 +121,11 @@ const getNewHeight = async (networkName, lastHeight) => {
                 }
         } catch (err) {
             console.log(`Error fetching height in ${networkName} rpc ${rpc} error : ${err?.message}`);
-            reportStats(networkName, rpc, false);
+            reportStats(networkName, rpc, "rpc", false);
         }
     }
 
-    throw CantGetNewBlockErr(networkCtx.name, chainData.endpoints);
+    throw new CantGetNewBlockErr(networkName, endpoints);
 };
 
 const getCw20TokenInfo = async (network, contract) => {
@@ -133,7 +134,7 @@ const getCw20TokenInfo = async (network, contract) => {
         return savedToken;
 
     console.log(`Fetching token on ${network} ${contract}`)
-    for (const { address: rpc } of getEndpoints(network.name)) {
+    for (const { address: rpc } of getEndpoints(network.name, "rpc")) {
         try {
             let client = await CosmWasmClient.connect(rpc);
             let info = await client.queryContractSmart(contract, { "token_info": {} });
@@ -150,8 +151,8 @@ const getCw20TokenInfo = async (network, contract) => {
 }
 
 module.exports = {
-    getValidatorProfiles,
     getTxsInBlock,
     getNewHeight,
-    getCw20TokenInfo
+    getCw20TokenInfo,
+    getValidatorInfo
 }

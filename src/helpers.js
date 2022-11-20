@@ -3,7 +3,7 @@ const { Registry } = require("@cosmjs/proto-signing");
 const { defaultRegistryTypes } = require("@cosmjs/stargate");
 const big = require("big.js");
 const osmojs = require("osmojs");
-const { getValidatorProfiles } = require("./requests");
+const { getValidatorProfiles, getValidatorInfo } = require("./requests");
 const sifchainDecoder = require("../chain-specific/sifchain/tx");
 const { getValidatorByAddress, saveValidator } = require("./db");
 
@@ -40,22 +40,12 @@ const getValidatorMoniker = async (network, validatorAddress) => {
     let targetProfile = await getValidatorByAddress(network.name, validatorAddress);
 
     if (!targetProfile) {
-        let allProfiles = await getValidatorProfiles(network.validatorsApi);
-        for (let p of allProfiles) {
-            await saveValidator(
-                network.name, 
-                { 
-                    network: network.name, 
-                    address: p.operator_address, 
-                    moniker: p.moniker
-                });
-            
-            if (p.operator_address === validatorAddress)
-                targetProfile = p;
-        }
+        let fetchedProfile = await getValidatorInfo(network.name, validatorAddress);
+        await saveValidator(network.name, fetchedProfile);
+        targetProfile = fetchedProfile;
     }
 
-    return targetProfile?.moniker || shortAddress(address);
+    return targetProfile?.moniker || shortAddress(validatorAddress);
 }
 
 const getDenomConfig = (network, denom, msgTrigger) => {

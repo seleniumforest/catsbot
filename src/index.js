@@ -40,12 +40,12 @@ const processNewHeight = async (network, newHeight, time) => {
 }
 
 const processNetwork = async (net) => {
-    console.log(`Starting network ${net.name}`);
     let chainData = await registerNetwork(net);
     let networkCtx = { ...net, ...chainData };
+    console.log(`Starting network ${net.name} with settings: ${JSON.stringify(networkCtx)}`);
     let cleanMode = args.clean === "true";
     //for debugging specific block
-    //yield processNewHeight(network, 12326122, new Date().toString());
+    //await processNewHeight(networkCtx, 12915486, new Date().toString());
 
     while (true) {
         let lastProcessedData = await getLastProcessedBlock(networkCtx.name);

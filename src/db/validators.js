@@ -8,7 +8,7 @@ const saveValidator = async (networkName, validatorInfo) => {
         return;
 
     console.log(`Saving validator info ${JSON.stringify(validatorInfo)} into db for network ${networkName}`);
-    await db.ref(`${networkName}/${validatorInfo.address}`)
+    await db.ref(`${networkName}/validators/${validatorInfo.address}`)
         .transaction(() => ({
             network: networkName,
             ...validatorInfo
@@ -16,7 +16,7 @@ const saveValidator = async (networkName, validatorInfo) => {
 }
 
 const getValidatorByAddress = async (networkName, address) => {
-    let data = await db.ref(`${networkName}/${address}`)
+    let data = await db.ref(`${networkName}/validators/${address}`)
         .get();
 
     return data.val();

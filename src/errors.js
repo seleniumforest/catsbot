@@ -6,8 +6,8 @@ class CantGetNewBlockErr extends Error {
 }
 
 class NoEndpointsRecievedErr extends Error {
-    constructor(registryName, options) {
-        let message = `No endpoints for ${registryName}`;
+    constructor(registryName, rpcType, options) {
+        let message = `No ${rpcType} endpoints for ${registryName}`;
         super(message, options);
     }
 }
