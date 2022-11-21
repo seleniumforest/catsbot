@@ -63,9 +63,7 @@ const getChainData = async (registryName) => {
 };
 
 const filterAliveRestRpcs = async (rpcs) => {
-    let aliveRestRpcs = [];
-
-    for (let rpc of rpcs) {
+    let alive = await Promise.allSettled(rpcs.map(async rpc => {
         try {
             let response = await axios({
                 method: "GET",
@@ -74,27 +72,26 @@ const filterAliveRestRpcs = async (rpcs) => {
             });
 
             if (!response || response.status !== 200)
-                continue;
+                return;
 
-            let blockTime = Date.parse(response.data.block.header.time);
+            let blockTime = Date.parse(response?.data?.block?.header?.time);
             let now = Date.now();
 
             if (Math.abs(now - blockTime) < oldBlockMs) {
-                aliveRestRpcs.push(rpc);
-                continue;
+                //console.log(`${rpc.address} is alive, sync block ${response?.data?.block?.header?.height}`);
+                return rpc;
             }
-
+            //console.log(`${rpc.address} is alive, but not synced`);
         } catch (err) {
+            //console.log(`${rpc.address} is dead. Error ${err?.message}`)
         }
-    }
+    }))
 
-    return aliveRestRpcs;
+    return alive.map(x => x.value).filter(x => !!x);
 }
 
 const filterAliveRpcs = async (rpcs) => {
-    let aliveRpcs = [];
-
-    for (let rpc of rpcs) {
+    let alive = await Promise.allSettled(rpcs.map(async rpc => {
         try {
             let response = await axios({
                 method: "GET",
@@ -103,23 +100,22 @@ const filterAliveRpcs = async (rpcs) => {
             });
 
             if (!response || response.status !== 200)
-                continue;
+                return;
 
             let blockTime = Date.parse(response?.data?.result?.sync_info?.latest_block_time);
             let now = Date.now();
             if (Math.abs(now - blockTime) < oldBlockMs) {
                 //console.log(`${rpc.address} is alive, sync block ${response.data.result.sync_info.latest_block_height}`);
-                aliveRpcs.push(rpc);
-                continue;
+                return rpc;
             }
 
             //console.log(`${rpc.address} is alive, but not synced`);
         } catch (err) {
-            //console.log(`${rpc.address} is dead. Error ${err?.message}`) 
+            //console.log(`${rpc.address} is dead. Error ${err?.message}`)
         }
-    }
+    }));
 
-    return aliveRpcs;
+    return alive.map(x => x.value).filter(x => !!x);
 }
 
 const reportStats = (networkName, rpcAddress, rpcType, result) => {

@@ -84,7 +84,7 @@ const getTxsInBlock = async (networkName, height) => {
 const pollForLatestHeight = async (networkName) => {
     let endpoints = getEndpoints(networkName, "rpc");
 
-    let results = await Promise.all(endpoints.map(async (e) => {
+    let results = await Promise.allSettled(endpoints.map(async (e) => {
         let url = `${e.address}/status`
         let { data } = await axios({
             method: "GET",
