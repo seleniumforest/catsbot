@@ -28,14 +28,14 @@ const processNewTx = async (network, newtx) => {
                 });
         });
 
-    await Promise.all(handlers);
+    await Promise.allSettled(handlers);
 }
 
 const processNewHeight = async (network, newHeight, time) => {
     let txs = await getTxsInBlock(network.name, newHeight);
     console.log(`${network.name}: recieved new block ${newHeight} with ${txs.length} txs`);
 
-    await Promise.all(txs.map(tx => processNewTx(network, tx, newHeight)));
+    await Promise.allSettled(txs.map(tx => processNewTx(network, tx, newHeight)));
     await saveProcessedBlock(network.name, newHeight, time);
 }
 
@@ -84,7 +84,7 @@ const processNetwork = async (net) => {
         config.networks.filter(x => x.name === args.network) :
         config.networks;
 
-    await Promise.all(networks.map(async (net) => {
+    await Promise.allSettled(networks.map(async (net) => {
         while (true) {
             try {
                 let result = await processNetwork(net);

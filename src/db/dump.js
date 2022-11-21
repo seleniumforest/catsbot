@@ -1,9 +1,10 @@
 const db = require("./db");
+const fs = require('fs');
 
 //only for dev purposes
 (async () => {
     let data = await db.ref(``)
         .get();
 
-    console.log(JSON.stringify(data.val(), null, 4));
+    fs.writeFile("./dump.json", JSON.stringify(data.val(), null, 4), () => {});
 })();

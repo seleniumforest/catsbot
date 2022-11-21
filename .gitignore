@@ -3,6 +3,7 @@ config1.json
 catsdb.acebase/
 config/secrets.json
 .vscode/
+dump.json
 
 # Logs
 logs
