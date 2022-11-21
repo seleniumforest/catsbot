@@ -3,7 +3,7 @@ const { Registry } = require("@cosmjs/proto-signing");
 const { defaultRegistryTypes } = require("@cosmjs/stargate");
 const big = require("big.js");
 const osmojs = require("osmojs");
-const { getValidatorInfo } = require("./requests");
+const { getValidatorProfiles, getValidatorInfo } = require("./requests");
 const sifchainDecoder = require("../chain-specific/sifchain/tx");
 const { getValidatorByAddress, saveValidator } = require("./db");
 
