@@ -183,6 +183,25 @@
                     "decimals": 6
                 }
             ]
+        },
+        {
+            "name": "crescent",
+            "notifyDenoms": [
+                {
+                    "denom": "ucre",
+                    "coingeckoId": "crescent-network",
+                    "ticker": "CRE",
+                    "amount": 100000000000,
+                    "decimals": 6
+                },
+                {
+                    "denom": "ubcre",
+                    "coingeckoId": "liquid-staking-crescent",
+                    "ticker": "CRE",
+                    "amount": 100000000000,
+                    "decimals": 6
+                }
+            ]
         }
     ]
 }
