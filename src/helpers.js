@@ -3,9 +3,10 @@ const { Registry } = require("@cosmjs/proto-signing");
 const { defaultRegistryTypes } = require("@cosmjs/stargate");
 const big = require("big.js");
 const osmojs = require("osmojs");
-const { getValidatorProfiles, getValidatorInfo } = require("./requests");
+const { getValidatorInfo, resolveAddressToIcns } = require("./requests");
 const sifchainDecoder = require("./chain-specific/sifchain/tx");
 const { getValidatorByAddress, saveValidator } = require("./db");
+const { fromBech32 } = require("@cosmjs/encoding");
 
 const fromBaseUnit = (amount, decimals = 6, fractionDigits = 2) => {
     if (!amount)
@@ -34,6 +35,20 @@ const getSifchainRegistry = () => new Registry([
 const getCosmwasmRegistry = () => new Registry(wasmTypes);
 const shortAddress = (addr, start = 9, end = 4) =>
     `${addr.slice(0, start)}...${addr.slice(addr.length - end, addr.length)}`;
+
+const shortAddressWithIcns = async (addr, start = 9, end = 4) => {
+    let short = shortAddress(addr, start, end);
+    let {
+        names,
+        primaryName
+    } = await resolveAddressToIcns(addr);
+
+    let prefix = fromBech32(addr).prefix;
+    let name = names.find(x => x.split(".")[1] === prefix);
+
+    return name || primaryName || short || addr;
+};
+
 const fromBase64 = (decoded) => Buffer.from(decoded, 'base64').toString();
 
 const getValidatorMoniker = async (network, validatorAddress) => {
@@ -76,5 +91,6 @@ module.exports = {
     getValidatorMoniker,
     getDenomConfig,
     getSifchainRegistry,
-    dateToUnix
+    dateToUnix,
+    shortAddressWithIcns
 }

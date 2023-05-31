@@ -1,6 +1,6 @@
 const { Telegraf } = require("telegraf");
 const config = require("../../config.json");
-const { shortAddress } = require("../helpers");
+const { shortAddressWithIcns } = require("../helpers");
 const priceData = require("./coingecko");
 
 const isProdEnv = config.env === "prod";
@@ -23,11 +23,11 @@ const notifyMsgSend = async (from, to, ticker, amount, txhash, network) => {
     let finalMsg = interpolate(msgSendPattern, {
         emoji: repeatEmoji(sendEmoji, usdPrice * amount),
         network: network.name,
-        fromAddress: shortAddress(from),
+        fromAddress: await shortAddressWithIcns(from),
         sentAmount: formatNum(amount),
         ticker,
         usdPrice: getUsdPriceString(usdPrice, amount),
-        toAddress: shortAddress(to),
+        toAddress: await shortAddressWithIcns(to),
         explorerUrl: getExplorerUrl(network, txhash)
     });
 
@@ -47,7 +47,7 @@ const notifyMsgDelegate = async (from, to, ticker, amount, txhash, network) => {
     const finalMsg = interpolate(msgDelegatePattern, {
         emoji: repeatEmoji(delegateEmoji, usdPrice * amount),
         network: network.name,
-        fromAddress: shortAddress(from),
+        fromAddress: await shortAddressWithIcns(from),
         delegatedAmount: formatNum(amount),
         ticker,
         usdPrice: getUsdPriceString(usdPrice, amount),
@@ -70,7 +70,7 @@ const notifyMsgUndelegate = async (delegator, validator, ticker, amount, txhash,
     const finalMsg = interpolate(msgUndelegatePattern, {
         emoji: repeatEmoji(undelegateEmoji, usdPrice * amount),
         network: network.name,
-        delegator: shortAddress(delegator),
+        delegator: await shortAddressWithIcns(delegator),
         undelegatedAmount: formatNum(amount),
         ticker,
         validator,
@@ -95,7 +95,7 @@ const notifyMsgRedelegate =
         const finalMsg = interpolate(msgRedelegatePattern, {
             emoji: repeatEmoji(redelegateEmoji, usdPrice * amount),
             network: network.name,
-            delegator: shortAddress(delegator),
+            delegator: await shortAddressWithIcns(delegator),
             fromValidator,
             toValidator,
             redelegatedAmount: formatNum(amount),
@@ -120,11 +120,11 @@ const notifyCw20Transfer =
         let finalMsg = interpolate(cw20TransferPattern, {
             emoji: repeatEmoji(transferEmoji, usdPrice * amount),
             network: network.name,
-            sender: shortAddress(sender),
+            sender: await shortAddressWithIcns(sender),
             sentAmount: formatNum(amount),
             ticker,
             usdPrice: getUsdPriceString(usdPrice, amount),
-            reciever: shortAddress(reciever),
+            reciever: await shortAddressWithIcns(reciever),
             explorerUrl: getExplorerUrl(network, txhash)
         });
 
@@ -151,7 +151,7 @@ const notifyOsmosisSwap =
         let finalMsg = interpolate(osmosisSwapPattern, {
             emoji: repeatEmoji(swapEmoji, (inUsdPrice * inAmount) || (outUsdPrice * outAmount)),
             network: network.name,
-            sender: shortAddress(sender),
+            sender: await shortAddressWithIcns(sender),
             inAmount: formatNum(inAmount),
             inTicker,
             inUsdPrice: inUsdPriceString,
@@ -183,7 +183,7 @@ const notifySifchainSwap =
         let finalMsg = interpolate(sifchainSwapPattern, {
             emoji: repeatEmoji(swapEmoji, (inUsdPrice * inAmount) || (outUsdPrice * outAmount)),
             network: network.name,
-            sender: shortAddress(sender),
+            sender: await shortAddressWithIcns(sender),
             inAmount: formatNum(inAmount),
             inTicker,
             inUsdPrice: inUsdPriceString,

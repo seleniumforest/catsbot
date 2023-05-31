@@ -150,9 +150,30 @@ const getCw20TokenInfo = async (network, contract) => {
     throw CantGetCw20TokenInfoErr(network.name, contract);
 }
 
+const icnsResolverContract = "osmo1xk0s8xgktn9x5vwcgtjdxqzadg88fgn33p8u9cnpdxwemvxscvast52cdd";
+const resolveAddressToIcns = async (address) => {
+    for (const { address: rpc } of getEndpoints("osmosis", "rpc")) {
+        try {
+            let client = await CosmWasmClient.connect(rpc);
+            let info = await client.queryContractSmart(icnsResolverContract, { "icns_names": { address } });
+
+            return {
+                names: info.names,
+                primaryName: info.primaryName
+            };
+        }
+        catch (err) {
+            console.log("failed to fetch icns info " + JSON.stringify(err));
+        }
+    }
+
+    return { names: [], primaryName: null }
+}
+
 module.exports = {
     getTxsInBlock,
     getNewHeight,
     getCw20TokenInfo,
-    getValidatorInfo
+    getValidatorInfo,
+    resolveAddressToIcns
 }
