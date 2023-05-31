@@ -1,5 +1,5 @@
 const { assets: sifchainAssets } = require("../chain-specific/sifchain/assets.json");
-const { assets: osmosisAssets } = require("../chain-specific/osmosis/assets.json");
+const { assets: osmosisAssets } = require("../chain-specific/osmosis/osmosis-1.assetlist.json");
 const db = require("./db");
 
 const saveToken = async (networkName, token) => {
