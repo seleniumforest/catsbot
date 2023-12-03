@@ -48,20 +48,24 @@ const getNotifyAmountThreshold = (allNotifyDenoms, ticker) => {
 }
 
 const parseSwapMsg = async (decodedMsg, tx) => {
-    let targetDenom = decodedMsg.routes[decodedMsg.routes.length - 1].tokenOutDenom;
+    let denomOut = decodedMsg.routes.at(-1).tokenOutDenom;
 
     let recievedCoin = tx.events
         .filter(x => x.type === "token_swapped")
         .flatMap(x => x.attributes)
         .find(x => fromBase64(x.key) === "tokens_out" &&
-            fromBase64(x.value).includes(targetDenom))?.value;
+            fromBase64(x.value).includes(denomOut))?.value;
+
+    if (!recievedCoin)
+        return;
+    recievedCoin = fromBase64(recievedCoin);
 
     let { ticker: inTicker, decimals: inTokenDecimals } =
         await searchInfoByDenom(decodedMsg.tokenIn.denom);
     let inAmount = decodedMsg.tokenIn.amount;
 
     let { outTicker, outAmount, decimals: outTokenDecimals } =
-        await parseOutCoin(fromBase64(recievedCoin))
+        await parseOutCoin(recievedCoin)
 
     return {
         inTicker,
@@ -97,7 +101,7 @@ const searchInfoByDenom = async (denom) => {
 
     //try fetch from github
     try {
-        let url = "https://raw.githubusercontent.com/osmosis-labs/assetlists/main/osmosis-1/osmosis-frontier.assetlist.json";
+        let url = "https://raw.githubusercontent.com/osmosis-labs/assetlists/main/osmosis-1/osmosis-1.assetlist.json";
         let githubTokensData = await axios.get(url);
         let githubListResult = searchDenomInAssetList(githubTokensData.data.assets, denom);
         if (githubListResult)
