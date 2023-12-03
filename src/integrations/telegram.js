@@ -233,7 +233,7 @@ const formatNum = (num) => {
 }
 
 const getExplorerUrl = (network, txhash) => {
-    if (!network.explorers || network.explorers === []) {
+    if (!network.explorers || !Array.isArray(network.explorers) || network.explorers?.length === 0) {
         console.warn(`no explorers found for network ${network.name}`);
         return `TX Hash: ${txhash}`;
     }

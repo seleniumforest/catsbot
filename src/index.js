@@ -45,7 +45,7 @@ const processNetwork = async (net) => {
     console.log(`Starting network ${net.name} with settings: ${JSON.stringify(networkCtx)}`);
     let cleanMode = args.clean === "true";
     //for debugging specific block
-    //await processNewHeight(networkCtx, 12915486, new Date().toString());
+    //await processNewHeight(networkCtx, 18037805, new Date().toString());
 
     while (true) {
         let lastProcessedData = await getLastProcessedBlock(networkCtx.name);
@@ -84,12 +84,14 @@ const processNetwork = async (net) => {
         config.networks.filter(x => x.name === args.network) :
         config.networks;
 
+    //for icns
+    await registerNetwork({ name: "osmosis" });
     await Promise.allSettled(networks.map(async (net) => {
         while (true) {
             try {
                 let result = await processNetwork(net);
                 console.log(`task ended with result ${result}`);
-            } catch (err) {              
+            } catch (err) {
                 console.log(err?.message);
                 //todo handle all types of errors from errors.js using instanceof
                 await new Promise(res => setTimeout(res, 60000));

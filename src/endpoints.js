@@ -35,16 +35,13 @@ const registerNetwork = async (network) => {
 const getChainData = async (registryName) => {
     let chainInfo = null;
 
-    for (let api of config.registryApis) {
-        let url = `${api}/${registryName}/chain.json`;
-        try {
-            let { data } = await axios.get(url);
-            chainInfo = data;
-            break;
-        } catch (err) {
-            //console.warn(`Getting chainData for ${registryName}: ${url} is dead`);
-            chainInfo = chains.find(chain => chain.chain_name === registryName);
-        }
+    try {
+        let url = `https://raw.githubusercontent.com/cosmos/chain-registry/master/${registryName}/chain.json`;
+        let { data } = await axios.get(url);
+        chainInfo = data;
+    } catch (err) {
+        //console.warn(`Getting chainData for ${registryName}: ${url} is dead`);
+        chainInfo = chains.find(chain => chain.chain_name === registryName);
     }
 
     let aliveRpcs = await filterAliveRpcs(chainInfo?.apis?.rpc);
@@ -65,60 +62,60 @@ const getChainData = async (registryName) => {
 const filterAliveRestRpcs = async (rpcs) => {
     let aliveRestRpcs = [];
 
-    for (let rpc of rpcs) {
+    let handlers = rpcs.map(async rpc => {
         try {
             let response = await axios({
                 method: "GET",
                 url: `${rpc.address}/cosmos/base/tendermint/v1beta1/blocks/latest`,
-                timeout: 5000
+                timeout: 10000
             });
 
             if (!response || response.status !== 200)
-                continue;
+                return;
 
             let blockTime = Date.parse(response.data.block.header.time);
             let now = Date.now();
 
             if (Math.abs(now - blockTime) < oldBlockMs) {
                 aliveRestRpcs.push(rpc);
-                continue;
             }
 
         } catch (err) {
         }
-    }
+    })
 
+    await Promise.allSettled(handlers);
     return aliveRestRpcs;
 }
 
 const filterAliveRpcs = async (rpcs) => {
     let aliveRpcs = [];
 
-    for (let rpc of rpcs) {
+    let handlers = rpcs.map(async rpc => {
         try {
             let response = await axios({
                 method: "GET",
                 url: `${rpc.address}/status`,
-                timeout: 5000
+                timeout: 10000
             });
 
             if (!response || response.status !== 200)
-                continue;
+                return;
 
             let blockTime = Date.parse(response?.data?.result?.sync_info?.latest_block_time);
             let now = Date.now();
             if (Math.abs(now - blockTime) < oldBlockMs) {
                 //console.log(`${rpc.address} is alive, sync block ${response.data.result.sync_info.latest_block_height}`);
                 aliveRpcs.push(rpc);
-                continue;
             }
 
             //console.log(`${rpc.address} is alive, but not synced`);
         } catch (err) {
-            //console.log(`${rpc.address} is dead. Error ${err?.message}`) 
+            console.log(`${rpc.address} is dead. Error ${err?.message}`)
         }
-    }
+    });
 
+    await Promise.allSettled(handlers);
     return aliveRpcs;
 }
 

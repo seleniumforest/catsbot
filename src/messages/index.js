@@ -5,6 +5,7 @@ const handleMsgSend = require("./msgSend");
 const handleMsgSifchainSwap = require("./msgSifchainSwap");
 const handleMsgSwapExactAmountIn = require("./msgSwapExactAmountIn");
 const handleMsgUndelegate = require("./msgUndelegate");
+const handleMsgExec = require("./msgExec");
 
 module.exports = {
     "/cosmos.bank.v1beta1.MsgSend": handleMsgSend,
@@ -13,5 +14,6 @@ module.exports = {
     "/cosmos.staking.v1beta1.MsgBeginRedelegate": handleMsgBeginRedelegate,
     "/cosmwasm.wasm.v1.MsgExecuteContract": handleMsgExecuteContract,
     "/osmosis.gamm.v1beta1.MsgSwapExactAmountIn": handleMsgSwapExactAmountIn,
-    "/sifnode.clp.v1.MsgSwap": handleMsgSifchainSwap
+    "/sifnode.clp.v1.MsgSwap": handleMsgSifchainSwap,
+    "/cosmos.authz.v1beta1.MsgExec": handleMsgExec
 };

@@ -2,10 +2,6 @@
     "env": "prod",
     "token": "1231231212:Qwertyuiopasdfghjkl;xcvbnm1234567890",
     "channel": "@channel",
-    "registryApis": [
-        "https://registry.ping.pub/",
-        "https://proxy.atomscan.com/directory/"
-    ],
     "networks": [
         {
             "name": "cosmos",
