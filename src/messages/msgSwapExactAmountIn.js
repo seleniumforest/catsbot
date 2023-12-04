@@ -4,6 +4,7 @@ const Big = require('big.js');
 const { default: axios } = require("axios");
 const { getTokenByDenom } = require("../db");
 const msgTrigger = "msgSwapExactAmountIn";
+const { saveToken } = require("../db/tokens.js");
 
 const handleMsgSwapExactAmountIn = async (network, msg, tx) => {
     let decodedMsg = getOsmosisRegistry().decode(msg);
@@ -48,24 +49,28 @@ const getNotifyAmountThreshold = (allNotifyDenoms, ticker) => {
 }
 
 const parseSwapMsg = async (decodedMsg, tx) => {
-    let denomOut = decodedMsg.routes.at(-1).tokenOutDenom;
-
-    let recievedCoin = tx.events
-        .filter(x => x.type === "token_swapped")
+    let transferLog = tx.events
+        .filter(x => x.type === "transfer")
         .flatMap(x => x.attributes)
-        .find(x => fromBase64(x.key) === "tokens_out" &&
-            fromBase64(x.value).includes(denomOut))?.value;
+        .map(x => ({ key: fromBase64(x.key || ""), value: fromBase64(x.value || "") }));
 
-    if (!recievedCoin)
-        return;
-    recievedCoin = fromBase64(recievedCoin);
+    let transfers = [];
+    for (let i = 0; i < transferLog.length; i += 3) {
+        transfers.push({
+            recipient: transferLog[i].value,
+            sender: transferLog[i + 1].value,
+            amount: transferLog[i + 2].value
+        })
+    }
+    let poolToUserTransfer = transfers.find(t => t.sender.length === 63 &&
+        t.recipient === decodedMsg.sender);
 
     let { ticker: inTicker, decimals: inTokenDecimals } =
         await searchInfoByDenom(decodedMsg.tokenIn.denom);
     let inAmount = decodedMsg.tokenIn.amount;
 
     let { outTicker, outAmount, decimals: outTokenDecimals } =
-        await parseOutCoin(recievedCoin)
+        await parseOutCoin(poolToUserTransfer.amount)
 
     return {
         inTicker,
@@ -103,6 +108,18 @@ const searchInfoByDenom = async (denom) => {
     try {
         let url = "https://raw.githubusercontent.com/osmosis-labs/assetlists/main/osmosis-1/osmosis-1.assetlist.json";
         let githubTokensData = await axios.get(url);
+
+        for (let asset of githubTokensData.data.assets) {
+            await saveToken(
+                "osmosis",
+                {
+                    denom: asset.base,
+                    decimals: asset.denom_units.find(x => x.exponent > 0)?.exponent || 6,
+                    ticker: asset.symbol,
+                    coingeckoId: asset.coingecko_id || ""
+                });
+        }
+
         let githubListResult = searchDenomInAssetList(githubTokensData.data.assets, denom);
         if (githubListResult)
             return githubListResult;
