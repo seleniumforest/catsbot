@@ -41,16 +41,8 @@ Supported msg types
         - msgSend     
         - msgUndelegate
         - msgBeginRedelegate
-        - msgSifchainSwap (sif swaps)
  
-2. Run ``` pm2 start ecosystem.config.js ``` to run script on all networks
-  - If you want to start solo network, please add arg with name specified in config 
-  
-      ``` pm2 start ecosystem.config.js --network=cosmos ```
-      
-  - If your script was offline for a long time, you can skip checking missed blocks. But remember that script will skip checking missed blocks, if last block was more than 15 min ago. 
-  
-      ``` pm2 start ecosystem.config.js --network=cosmos --clean=true ```
+2. Run ``` pm2 start ecosystem.config.js ``` to run bot. Or you can run it with `ts-node src/index`
       
 ## Monitoring
 
@@ -63,11 +55,3 @@ Supported msg types
   - Show logs stored in ~/.pm2/logs/
   
       ``` pm2 logs ```
-
-## Roadmap
-
-- [x] Osmosis whale swaps
-- [x] Custom amounts for each message on each denom
-- [x] Show Prices in USD
-- [?] Add Secret network
-- [?] Add IBC-txs

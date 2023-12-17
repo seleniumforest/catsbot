@@ -4,9 +4,7 @@
     "channel": "@channel",
     "networks": [
         {
-            "name": "cosmos",
-            "registryName": "cosmoshub",
-            "validatorsApi": "https://api.cosmostation.io/v1/staking/validators",
+            "name": "cosmoshub",
             "notifyDenoms": [
                 {
                     "denom": "uatom",
@@ -22,7 +20,6 @@
         },
         {
             "name": "osmosis",
-            "validatorsApi": "https://api-osmosis.cosmostation.io/v1/staking/validators",
             "notifyDenoms": [
                 {
                     "denom": "uosmo",
@@ -87,7 +84,6 @@
         },
         {
             "name": "juno",
-            "validatorsApi": "https://api-juno.cosmostation.io/v1/staking/validators",
             "notifyDenoms": [
                 {
                     "denom": "ujuno",
@@ -114,7 +110,6 @@
         },
         {
             "name": "evmos",
-            "validatorsApi": "https://api-evmos.cosmostation.io/v1/staking/validators",
             "notifyDenoms": [
                 {
                     "denom": "aevmos",
@@ -125,32 +120,6 @@
                     "msgAmounts": {
                         "msgDelegate": 50000000000000000000000,
                         "msgUndelegate": 50000000000000000000000
-                    }
-                }
-            ]
-        },
-        {
-            "name": "sifchain",
-            "validatorsApi": "https://api-sifchain.cosmostation.io/v1/staking/validators",
-            "notifyDenoms": [
-                {
-                    "denom": "ibc/27394FB092D2ECCD56123C74F36E4C1F926001CEADA9CA97EA622B25F41E5EB2",
-                    "amount": 900000000,
-                    "coingeckoId": "cosmos",
-                    "ticker": "ATOM"
-                },
-                {
-                    "denom": "cusdc",
-                    "amount": 10000000000,
-                    "ticker": "USDC"
-                },
-                {
-                    "denom": "rowan",
-                    "amount": 10000000000000000000000000000,
-                    "coingeckoId": "sifchain",
-                    "decimals": 18,
-                    "msgAmounts": {
-                        "msgSifchainSwap": 2120000000000000000000000
                     }
                 }
             ]
@@ -169,7 +138,6 @@
         },
         {
             "name": "umee",
-            "validatorsApi": "https://api-umee.cosmostation.io/v1/staking/validators",
             "notifyDenoms": [
                 {
                     "denom": "uumee",
