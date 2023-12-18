@@ -14,20 +14,16 @@ export const dbReady = async () => {
     await db.ready();
     await loadOsmosisTokensFromFile();
 }
-
-export const saveProcessedBlockToDb = async (networkName: string, height: number, time: any) => {
-    await db.ref(`${networkName}/block`)
+export type SavedBlock = { network: string, height: number, time: number };
+export const saveProcessedBlockToDb = async (block: SavedBlock) => {
+    await db.ref(`${block.network}/block`)
         .transaction(() => ({
-            network: networkName,
-            height,
-            time
+            ...block
         }));
 }
 
 export const getLastProcessedBlockFromDb = async (networkName: string) => {
-    let data = await db.ref(`${networkName}/block`)
-        .get();
-
+    let data = await db.ref(`${networkName}/block`).get<SavedBlock>();
     return data.val();
 }
 
