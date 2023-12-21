@@ -14,12 +14,9 @@ const axiosCached = setupCache(axios, {
 });
 
 export const handleMsgSwapExactAmountIn = async (ctx: HandlerContext) => {
-    if (ctx.tx.hash === "2C27D347C7D722E60C779AEE640E42FEC94C98506430F77C8EF183B4D8626C3C")
-        debugger;
     let decodedMsg = ctx.decodedMsg as MsgSwapExactAmountIn;
     let swap = await parseSwapMsg(ctx);
-    if (ctx.tx.hash === "2C27D347C7D722E60C779AEE640E42FEC94C98506430F77C8EF183B4D8626C3C")
-        debugger;
+
     if (!swap || swap.inTicker === swap.outTicker)
         return;
 
@@ -55,7 +52,9 @@ const getNotifyAmountThreshold = (allNotifyDenoms: NotifyDenom[] | undefined, ti
 const parseSwapMsg = async (ctx: HandlerContext) => {
     let decodedMsg = ctx.decodedMsg as MsgSwapExactAmountIn;
 
-    let tokenSwappedLast = ctx.tx.events.filter(x => x.type === "token_swapped").at(-1);
+    let tokenSwappedLast = ctx.tx.events
+        .filter(x => x.type === "token_swapped")
+        .find(x => x.attributes.find(y => y?.key === "pool_id")?.value.toString() === decodedMsg.routes.at(-1)?.poolId.toString());
     let tokenOut = tokenSwappedLast?.attributes.find(x => x.key === "tokens_out")?.value;
     if (!tokenOut)
         return;

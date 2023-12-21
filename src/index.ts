@@ -33,18 +33,19 @@ async function processBlock(chain: Chain, block: IndexedBlock) {
     for (const network of getConfig().networks) {
         watcher.useNetwork({
             name: network.name,
-            dataToFetch: "INDEXED_TXS"
-        })
-    }
-    watcher.useChainRegistryRpcs()
-        .onBlockRecieved(async (ctx, block) => {
-            console.log(`Processing ${ctx.chain.chain_name} at ${block.header.height}`);
-            try {
-                await processBlock(ctx.chain, block as IndexedBlock);
-            } catch (e) {
-                console.log(JSON.stringify(e, null, 4));
+            dataToFetch: "INDEXED_TXS",
+            lag: 10,
+            onBlockRecievedCallback: async (ctx, indexedBlock) => {
+                let block = indexedBlock as IndexedBlock;
+                console.log(`Processing ${ctx.chain.chain_name} at ${block.header.height}`);
+                try {
+                    await processBlock(ctx.chain, block as IndexedBlock);
+                } catch (e) {
+                    console.log(JSON.stringify(e, null, 4));
+                }
             }
         })
-
+    }
+    watcher.useChainRegistryRpcs();
     await watcher.run();
 })().catch(err => console.log(err));
