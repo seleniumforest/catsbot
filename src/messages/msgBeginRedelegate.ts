@@ -3,7 +3,8 @@ import { HandlerContext } from ".";
 import Big from "big.js";
 import { getNotifyDenomConfig } from "../config";
 import { notifyMsgRedelegate } from "../integrations/telegram";
-import { fromBaseUnit, getValidatorMoniker } from "../helpers";
+import { fromBaseUnit } from "../helpers";
+import { getValidatorMoniker } from "../integrations/validators";
 
 export const handleMsgBeginRedelegate = async (ctx: HandlerContext) => {
     let decodedMsg = ctx.decodedMsg as MsgBeginRedelegate;

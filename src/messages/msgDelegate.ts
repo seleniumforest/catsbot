@@ -2,8 +2,9 @@ import { MsgDelegate } from "cosmjs-types/cosmos/staking/v1beta1/tx";
 import { HandlerContext } from ".";
 import { getNotifyDenomConfig } from "../config";
 import Big from "big.js";
-import { fromBaseUnit, getValidatorMoniker } from "../helpers";
+import { fromBaseUnit } from "../helpers";
 import { notifyMsgDelegate } from "../integrations/telegram";
+import { getValidatorMoniker } from "../integrations/validators";
 
 export const handleMsgDelegate = async (ctx: HandlerContext) => {
     let decodedMsg = ctx.decodedMsg as MsgDelegate;

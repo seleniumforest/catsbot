@@ -2,8 +2,11 @@ config.json
 config1.json
 catsdb.acebase/
 config/secrets.json
-.vscode/
 dump.json
+src1/
+build/
+src/debug.ts
+prisma/catsdb.*
 
 # Logs
 logs
@@ -135,7 +138,3 @@ dist
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
-
-src1/
-build/
-src/debug.ts

@@ -1,8 +1,9 @@
 import Big from "big.js";
 import { HandlerContext } from ".";
 import { getNotifyDenomConfig } from "../config";
-import { fromBaseUnit, getCw20TokenInfo } from "../helpers";
+import { fromBaseUnit } from "../helpers";
 import { notifyCw20Transfer } from "../integrations/telegram";
+import { getCw20TokenInfo } from "../integrations/tokens";
 
 
 export const handleMsgExecuteContract = async (ctx: HandlerContext) => {

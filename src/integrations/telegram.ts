@@ -3,9 +3,7 @@ import { getConfig } from "../config";
 import { getTickerPrice } from "./coingecko";
 import { chains } from "chain-registry";
 import Big, { BigSource } from "big.js";
-import { resolveAddressToIcns } from "./icns";
-import { fromBech32 } from "@cosmjs/encoding";
-import { shortAddress } from "../helpers";
+import { shortAddressWithIcns } from "./icns";
 
 const config = getConfig();
 const isProdEnv = config.env === "prod";
@@ -13,8 +11,8 @@ const bot = new Telegraf(config.token);
 if (isProdEnv)
     bot.launch();
 
-process.once('SIGINT', () => bot.stop('SIGINT'));
-process.once('SIGTERM', () => bot.stop('SIGTERM'));
+process.once('SIGINT', () => isProdEnv && bot.stop('SIGINT'));
+process.once('SIGTERM', () => isProdEnv && bot.stop('SIGTERM'));
 
 const msgSendPattern = "#transfer #${network}\n" +
     "${emoji} \n" +
@@ -30,7 +28,7 @@ export const notifyMsgSend = async (
     network: string
 ) => {
     let sendEmoji = "💲";
-    let usdPrice = getTickerPrice(ticker);
+    let usdPrice = await getTickerPrice(ticker);
     if (!usdPrice)
         return;
 
@@ -63,7 +61,7 @@ export const notifyMsgDelegate = async (
     network: string
 ) => {
     let delegateEmoji = "🐳";
-    let usdPrice = getTickerPrice(ticker);
+    let usdPrice = await getTickerPrice(ticker);
     if (!usdPrice)
         return;
 
@@ -95,7 +93,7 @@ export const notifyMsgUndelegate = async (
     network: string
 ) => {
     let undelegateEmoji = "🦐";
-    let usdPrice = getTickerPrice(ticker);
+    let usdPrice = await getTickerPrice(ticker);
     if (!usdPrice)
         return;
 
@@ -129,7 +127,7 @@ export const notifyMsgRedelegate = async (
     network: string
 ) => {
     let redelegateEmoji = "♻️";
-    let usdPrice = getTickerPrice(ticker);
+    let usdPrice = await getTickerPrice(ticker);
     if (!usdPrice)
         return
 
@@ -163,7 +161,7 @@ export const notifyCw20Transfer = async (
     network: string
 ) => {
     let transferEmoji = "💲";
-    let usdPrice = getTickerPrice(ticker);
+    let usdPrice = await getTickerPrice(ticker);
     if (!usdPrice)
         return;
 
@@ -198,8 +196,8 @@ export const notifyOsmosisSwap = async (
     network: string
 ) => {
     let swapEmoji = "🔄";
-    let inUsdPrice = getTickerPrice(inTicker);
-    let outUsdPrice = getTickerPrice(outTicker);
+    let inUsdPrice = await getTickerPrice(inTicker);
+    let outUsdPrice = await getTickerPrice(outTicker);
     if (!inUsdPrice && !outUsdPrice)
         return;
     let price = inUsdPrice ? inAmount.mul(inUsdPrice) : outAmount.mul(outUsdPrice!);
@@ -262,18 +260,6 @@ const notify = async (message: string) => {
                 disable_web_page_preview: true
             });
 }
-
-const shortAddressWithIcns = async (addr: string, start = 9, end = 4) => {
-    let short = shortAddress(addr, start = 9, end = 4);
-    let icnsResult = await resolveAddressToIcns(addr);
-    if (!icnsResult)
-        return short;
-
-    let prefix = fromBech32(addr).prefix;
-    let name = icnsResult.names.find((x: string) => x.split(".")[1] === prefix);
-
-    return name || icnsResult.primaryName || short || addr;
-};
 
 const interpolate = (str: string, args: any) => {
     Object.keys(args).forEach(arg => {

@@ -1,14 +1,20 @@
-import axios from "axios";
 import { getConfig } from "../config";
 import { uniq } from "lodash";
+import { prisma } from "../db";
+import { TimeSpan } from "timespan-ts";
 
 const config = getConfig();
 const baseUrl = "https://api.coingecko.com/api/v3";
-const attempts = 5;
-const validityPeriod = 1000 * 60 * 30; //30 min
-const priceData = new Map<string, { price: number, lastUpdated: number }>();
+const attempts = 3;
+const validityPeriod = TimeSpan.fromMinutes(30).totalMilliseconds;
+
+export async function pricesReady() {
+    setInterval(updatePrices, 1000 * 60 * 5);
+    await updatePrices();
+}
 
 const updatePrices = async () => {
+    console.log("updating prices...");
     const allTrigerTickers = uniq(config.networks
         .flatMap(x => x.notifyDenoms)
         .map(x => x.coingeckoId)
@@ -18,35 +24,55 @@ const updatePrices = async () => {
         const url = `${baseUrl}/simple/price?ids=${allTrigerTickers.join(",")}&vs_currencies=usd`;
 
         try {
-            let { data } = await axios.get(url);
-            Object.keys(data)
-                .forEach(key => priceData.set(key, { price: data[key]?.["usd"], lastUpdated: Date.now() }))
+            let resp = await fetch(url);
+            if (resp.status != 200)
+                return;
 
-            console.log(priceData);
-            break;
+            let json = await resp.json() as any;
+            console.log(json);
+            for (const key of Object.keys(json)) {
+                await prisma.price.upsert({
+                    where: {
+                        coingeckoId: key
+                    },
+                    create: {
+                        coingeckoId: key,
+                        priceUsd: json[key]?.["usd"],
+                        savedDate: new Date()
+                    },
+                    update: {
+                        priceUsd: json[key]?.["usd"],
+                        savedDate: new Date()
+                    }
+                })
+            }
+
+            return;
         } catch (err) {
-            console.log(err);
+            console.log(`updatePrices error ${err}`);
             await new Promise(res => setTimeout(res, 60000));
         }
     }
 }
 
-export function priceDump() {
-    return [...priceData.entries()];
+export async function priceDump() {
+    return await prisma.price.findMany();
 }
 
-export function getCoingeckoIdPrice(coingeckoId: string) {
-    let result = priceData.get(coingeckoId);
-    if (!result)
-        return;
+export async function getCoingeckoIdPrice(coingeckoId: string) {
+    let result = await prisma.price.findUnique({
+        where: {
+            coingeckoId,
+            savedDate: {
+                gt: new Date(Date.now() - validityPeriod)
+            }
+        }
+    });
 
-    if (Date.now() - result.lastUpdated > validityPeriod)
-        return;
-
-    return result.price;
+    return result;
 }
 
-export function getTickerPrice(ticker: string) {
+export async function getTickerPrice(ticker: string) {
     let notifyDenom = config.networks
         .flatMap(x => x.notifyDenoms)
         .find(x => x.ticker === ticker);
@@ -54,19 +80,5 @@ export function getTickerPrice(ticker: string) {
     if (!notifyDenom || !notifyDenom.coingeckoId)
         return;
 
-    return getCoingeckoIdPrice(notifyDenom.coingeckoId);
+    return (await getCoingeckoIdPrice(notifyDenom.coingeckoId))?.priceUsd;
 }
-
-export function getDenomPrice(denom: string) {
-    let notifyDenom = config.networks
-        .flatMap(x => x.notifyDenoms)
-        .find(x => x.denom === denom);
-
-    if (!notifyDenom || !notifyDenom.coingeckoId)
-        return;
-
-    return getCoingeckoIdPrice(notifyDenom.coingeckoId);
-}
-
-setInterval(updatePrices, 1000 * 60 * 5);
-updatePrices();

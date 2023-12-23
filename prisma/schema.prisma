@@ -1,0 +1,42 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./catsdb.db"
+}
+
+model Block {
+  id      Int      @id @default(autoincrement())
+  network String   @unique
+  height  Int      @unique
+  time    DateTime
+}
+
+model Token {
+  id          Int     @id @default(autoincrement())
+  network     String
+  identifier  String  @unique
+  decimals    Int
+  ticker      String
+  coingeckoId String?
+}
+
+model Validator {
+  id        Int      @id @default(autoincrement())
+  network   String
+  moniker   String
+  address   String   @unique
+  savedDate DateTime
+}
+
+model Price {
+  id          Int      @id @default(autoincrement())
+  coingeckoId String   @unique
+  priceUsd    Float
+  savedDate   DateTime
+}

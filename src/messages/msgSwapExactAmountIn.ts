@@ -1,17 +1,11 @@
 import { MsgSwapExactAmountIn } from "osmojs/dist/codegen/osmosis/gamm/v1beta1/tx";
 import { HandlerContext } from ".";
-import { fromBase64 } from "@cosmjs/encoding";
 import { MsgTypes, NotifyDenom, getConfig } from "../config";
 import Big from "big.js";
 import { notifyOsmosisSwap } from "../integrations/telegram";
-import { fromBaseUnit, shortAddress } from "../helpers";
-import { getTokenByDenomFromDb, saveTokenToDb } from "../db";
-import axios from "axios";
-import { setupCache } from "axios-cache-interceptor";
+import { fromBaseUnit } from "../helpers";
+import { prisma } from "../db";
 
-const axiosCached = setupCache(axios, {
-    ttl: 1000 * 60 * 60 * 12
-});
 
 export const handleMsgSwapExactAmountIn = async (ctx: HandlerContext) => {
     let decodedMsg = ctx.decodedMsg as MsgSwapExactAmountIn;
@@ -63,7 +57,12 @@ const parseSwapMsg = async (ctx: HandlerContext) => {
     if (!parsedTokenOut)
         return;
 
-    let infoResult = await searchInfoByDenom(decodedMsg.tokenIn.denom);
+    let infoResult = await await prisma.token.findUnique({
+        where: {
+            network: "osmosis",
+            identifier: decodedMsg.tokenIn.denom
+        }
+    });
     if (!infoResult)
         return;
 
@@ -84,7 +83,12 @@ const parseOutCoin = async (swappedCoin: string) => {
 
     let amount = swappedCoin.substring(0, separatorIndex);
     let denom = swappedCoin.substring(separatorIndex, swappedCoin.length);
-    let infoResult = await searchInfoByDenom(denom);
+    let infoResult = await prisma.token.findUnique({
+        where: {
+            network: "osmosis",
+            identifier: denom
+        }
+    });
     if (!infoResult)
         return;
 
@@ -92,63 +96,5 @@ const parseOutCoin = async (swappedCoin: string) => {
         outAmount: amount,
         outTicker: infoResult.ticker,
         decimals: infoResult.decimals
-    }
-}
-
-const searchInfoByDenom = async (denom: string) => {
-    let localdbResult = await getTokenByDenomFromDb("osmosis", denom);
-    if (localdbResult)
-        return localdbResult;
-
-    //try fetch from github
-    try {
-        console.warn("searchInfoByDenom: trying to fetch from github");
-        let url = "https://raw.githubusercontent.com/osmosis-labs/assetlists/main/osmosis-1/osmosis-1.assetlist.json";
-        let githubTokensData = await axiosCached.get(url);
-
-        for (let asset of githubTokensData.data.assets) {
-            await saveTokenToDb(
-                "osmosis",
-                {
-                    id: asset.base,
-                    decimals: asset.denom_units.find((x: any) => x.exponent > 0)?.exponent,
-                    ticker: asset.symbol,
-                    coingeckoId: asset.coingecko_id || ""
-                });
-        }
-
-        let githubListResult = searchDenomInAssetList(githubTokensData.data.assets, denom);
-        if (githubListResult)
-            return githubListResult;
-    } catch (err: any) {
-        console.log(`Cannot find on github denom ${denom} ${JSON.stringify(err?.message)}`)
-    }
-
-    //try search on imperator api
-    try {
-        let tickerUrl = 'https://api-osmosis.imperator.co/search/v1/symbol?denom=';
-        let decimalsUrl = 'https://api-osmosis.imperator.co/search/v1/exponent?symbol=';
-        let { data: { symbol } } = await axios.get(`${tickerUrl}${denom}`);
-        let { data: { exponent } } = await axios.get(`${decimalsUrl}${denom}`);
-
-        return {
-            ticker: symbol || shortAddress(denom, 8, 4),
-            decimals: exponent || 6
-        }
-    } catch (err: any) {
-        console.log(`Cannot find denom ${denom} ${JSON.stringify(err?.message)}`)
-    }
-}
-
-const searchDenomInAssetList = (list: any[], denom: string) => {
-    let resultFromAssetlist = list?.find(x => x.base === denom);
-    if (resultFromAssetlist) {
-        return {
-            ticker: resultFromAssetlist?.symbol,
-            decimals: resultFromAssetlist?.denom_units
-                .find((x: any) => x.denom.toLowerCase() === resultFromAssetlist?.symbol?.toLowerCase() ||
-                    x.denom.toLowerCase() === resultFromAssetlist?.display?.toLowerCase())
-                ?.exponent
-        };
     }
 }
