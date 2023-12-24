@@ -17,7 +17,7 @@ export const handleMsgSwapExactAmountIn = async (ctx: HandlerContext) => {
         return;
 
     let inAmountConfig = await getNotifyDenomConfig(ctx.chain.chain_name, swap.tokenIn.identifier, "msgSwapExactAmountIn");
-    let outAmountConfig = await getNotifyDenomConfig(ctx.chain.chain_name, swap.tokenIn.identifier, "msgSwapExactAmountIn");
+    let outAmountConfig = await getNotifyDenomConfig(ctx.chain.chain_name, swap.tokenOut.identifier, "msgSwapExactAmountIn");
 
     let inUsdPriceValue = await getPriceByIdentifier(inAmountConfig?.identifier);
     let outUsdPriceValue = await getPriceByIdentifier(outAmountConfig?.identifier);
