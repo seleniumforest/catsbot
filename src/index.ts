@@ -1,7 +1,6 @@
 import { BlocksWatcher, Chain, IndexedBlock } from "cosmos-indexer";
 import { decodeTxRaw } from "@cosmjs/proto-signing";
 import { msgHandlerMap } from "./messages";
-import monitoring from "./monitoring/monitoring.";
 import { dbReady, prisma } from "./db";
 import { registry } from "./helpers";
 import { getConfig } from "./config";
@@ -54,9 +53,6 @@ async function processBlock(chain: Chain, block: IndexedBlock) {
 }
 
 (async () => {
-    console.log("starting monitoring server...")
-    monitoring.listen(3000);
-
     await Promise.all([
         dbReady(),
         tokenListsReady(),
