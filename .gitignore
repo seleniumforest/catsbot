@@ -7,6 +7,7 @@ src1/
 build/
 src/debug.ts
 prisma/catsdb.*
+configDump.json
 
 # Logs
 logs

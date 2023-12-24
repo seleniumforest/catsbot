@@ -7,5 +7,6 @@ export const dbReady = async () => {
     let [dbStatus] = await prisma.$queryRaw<any>`SELECT 1`;
     if (dbStatus[1] !== BigInt(1))
         throw new Error("db is not ready");
+
     return true;
 }

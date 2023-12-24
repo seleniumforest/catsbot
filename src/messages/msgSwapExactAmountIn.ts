@@ -1,49 +1,44 @@
 import { MsgSwapExactAmountIn } from "osmojs/dist/codegen/osmosis/gamm/v1beta1/tx";
 import { HandlerContext } from ".";
-import { MsgTypes, NotifyDenom, getConfig } from "../config";
+import { getNotifyDenomConfig } from "../config";
 import Big from "big.js";
 import { notifyOsmosisSwap } from "../integrations/telegram";
 import { fromBaseUnit } from "../helpers";
 import { prisma } from "../db";
+import { Token } from "@prisma/client";
+import { getPriceByIdentifier } from "../integrations/coingecko";
 
 
 export const handleMsgSwapExactAmountIn = async (ctx: HandlerContext) => {
     let decodedMsg = ctx.decodedMsg as MsgSwapExactAmountIn;
     let swap = await parseSwapMsg(ctx);
 
-    if (!swap || swap.inTicker === swap.outTicker)
+    if (!swap || swap.tokenIn.ticker === swap.tokenOut.ticker)
         return;
 
-    let allNotifyDenoms = getConfig().networks.find(x => x.name === ctx.chain.chain_name)?.notifyDenoms;
-    if (!allNotifyDenoms)
-        return;
+    let inAmountConfig = await getNotifyDenomConfig(ctx.chain.chain_name, swap.tokenIn.identifier, "msgSwapExactAmountIn");
+    let outAmountConfig = await getNotifyDenomConfig(ctx.chain.chain_name, swap.tokenIn.identifier, "msgSwapExactAmountIn");
 
-    //todo match by denom instead of ticker
-    let inTickerMatch = allNotifyDenoms.find(x => x.ticker === swap!.inTicker);
-    let outTickerMatch = allNotifyDenoms.find(x => x.ticker === swap!.outTicker);
+    let inUsdPriceValue = await getPriceByIdentifier(inAmountConfig?.identifier);
+    let outUsdPriceValue = await getPriceByIdentifier(outAmountConfig?.identifier);
+    let inUsdValue = inUsdPriceValue && fromBaseUnit(swap.tokenIn.amount, swap.tokenIn.decimals).mul(inUsdPriceValue).toNumber();
+    let outUsdValue = outUsdPriceValue && fromBaseUnit(swap.tokenOut.amount, swap.tokenOut.decimals).mul(outUsdPriceValue).toNumber();
 
-    let inAmountThreshhold = getNotifyAmountThreshold(allNotifyDenoms, swap.inTicker, "msgSwapExactAmountIn");
-    let outAmountThreshhold = getNotifyAmountThreshold(allNotifyDenoms, swap.outTicker, "msgSwapExactAmountIn");
-
-    if (inTickerMatch && inAmountThreshhold && Big(swap.inAmount).gte(Big(inAmountThreshhold)) ||
-        outTickerMatch && outAmountThreshhold && Big(swap.outAmount).gte(Big(outAmountThreshhold)))
+    if (inAmountConfig && Big(swap.tokenIn.amount).gte(Big(inAmountConfig.thresholdAmount)) ||
+        outAmountConfig && Big(swap.tokenOut.amount).gte(Big(outAmountConfig.thresholdAmount)))
         notifyOsmosisSwap(
             decodedMsg.sender,
-            fromBaseUnit(swap.inAmount, swap.inTokenDecimals),
-            swap.inTicker,
-            fromBaseUnit(swap.outAmount, swap.outTokenDecimals),
-            swap.outTicker,
+            fromBaseUnit(swap.tokenIn.amount, swap.tokenIn.decimals),
+            swap.tokenIn.ticker,
+            fromBaseUnit(swap.tokenOut.amount, swap.tokenOut.decimals),
+            swap.tokenOut.ticker,
             ctx.tx.hash,
-            ctx.chain.chain_name
+            ctx.chain.chain_name,
+            inUsdValue || outUsdValue
         );
 }
 
-const getNotifyAmountThreshold = (allNotifyDenoms: NotifyDenom[] | undefined, ticker: string, msgType: MsgTypes) => {
-    let inTickerMatch = allNotifyDenoms?.find(x => x.ticker === ticker);
-    return inTickerMatch?.msgAmounts?.[msgType] || inTickerMatch?.amount;
-}
-
-const parseSwapMsg = async (ctx: HandlerContext) => {
+const parseSwapMsg = async (ctx: HandlerContext): Promise<TokenSwapInfo | undefined> => {
     let decodedMsg = ctx.decodedMsg as MsgSwapExactAmountIn;
 
     let tokenSwappedLast = ctx.tx.events
@@ -57,28 +52,27 @@ const parseSwapMsg = async (ctx: HandlerContext) => {
     if (!parsedTokenOut)
         return;
 
-    let infoResult = await await prisma.token.findUnique({
+    let tokenInResult = await prisma.token.findUnique({
         where: {
             network: "osmosis",
             identifier: decodedMsg.tokenIn.denom
         }
     });
-    if (!infoResult)
+    if (!tokenInResult)
         return;
 
     return {
-        inTicker: infoResult.ticker,
-        inAmount: decodedMsg.tokenIn.amount,
-        inTokenDecimals: infoResult.decimals,
-        outTicker: parsedTokenOut.outTicker,
-        outAmount: parsedTokenOut.outAmount,
-        outTokenDecimals: parsedTokenOut.decimals
+        tokenIn: {
+            ...tokenInResult,
+            amount: decodedMsg.tokenIn.amount
+        },
+        tokenOut: { ...parsedTokenOut }
     }
 }
 
 //splits 83927482ibc/27394FB092D2ECCD56123C74F36E4C1F926001CEADA9CA97EA622B25F41E5EB2
 //to sum and ticker
-const parseOutCoin = async (swappedCoin: string) => {
+const parseOutCoin = async (swappedCoin: string): Promise<SwappedToken | undefined> => {
     let separatorIndex = Array.from(swappedCoin).findIndex(x => !Number.isInteger(parseInt(x)));
 
     let amount = swappedCoin.substring(0, separatorIndex);
@@ -93,8 +87,14 @@ const parseOutCoin = async (swappedCoin: string) => {
         return;
 
     return {
-        outAmount: amount,
-        outTicker: infoResult.ticker,
-        decimals: infoResult.decimals
+        amount,
+        ...infoResult
     }
+}
+
+type SwappedToken = Token & { amount: string };
+
+type TokenSwapInfo = {
+    tokenIn: SwappedToken,
+    tokenOut: SwappedToken
 }

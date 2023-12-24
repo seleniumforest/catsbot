@@ -4,11 +4,12 @@ import { getNotifyDenomConfig } from "../config";
 import { fromBaseUnit } from "../helpers";
 import { notifyCw20Transfer } from "../integrations/telegram";
 import { getCw20TokenInfo } from "../integrations/tokens";
+import { getPriceByIdentifier } from "../integrations/coingecko";
 
 
 export const handleMsgExecuteContract = async (ctx: HandlerContext) => {
     let decodedExecuteContractMsg = JSON.parse(new TextDecoder().decode(ctx.decodedMsg.msg));
-    let tokenConfig = getNotifyDenomConfig(ctx.chain.chain_name, ctx.decodedMsg.contract, "msgExecuteContract");
+    let tokenConfig = await getNotifyDenomConfig(ctx.chain.chain_name, ctx.decodedMsg.contract, "msgExecuteContract");
 
     let isTransferMsg = isCw20TransferMsg(decodedExecuteContractMsg);
     if (!isTransferMsg || !tokenConfig || !tokenConfig.thresholdAmount)
@@ -21,13 +22,19 @@ export const handleMsgExecuteContract = async (ctx: HandlerContext) => {
     if (Big(decodedExecuteContractMsg.transfer.amount).lt(Big(tokenConfig.thresholdAmount)))
         return;
 
+    let usdPrice = await getPriceByIdentifier(tokenConfig.identifier);
+    if (!usdPrice)
+        return;
+    let usdValue = fromBaseUnit(decodedExecuteContractMsg.transfer.amount, tokenInfo.decimals).mul(usdPrice).toNumber();
+
     await notifyCw20Transfer(
         ctx.decodedMsg.sender,
         decodedExecuteContractMsg.transfer.recipient,
         tokenInfo.ticker,
         fromBaseUnit(decodedExecuteContractMsg.transfer.amount, tokenInfo.decimals),
         ctx.tx.hash,
-        ctx.chain.chain_name
+        ctx.chain.chain_name,
+        usdValue
     )
 }
 

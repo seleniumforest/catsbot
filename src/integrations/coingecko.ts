@@ -1,9 +1,8 @@
-import { getConfig } from "../config";
-import { uniq } from "lodash";
+import { empty } from "@prisma/client/runtime/library";
+import { getCoingeckoIds } from "../config";
 import { prisma } from "../db";
 import { TimeSpan } from "timespan-ts";
 
-const config = getConfig();
 const baseUrl = "https://api.coingecko.com/api/v3";
 const attempts = 3;
 const validityPeriod = TimeSpan.fromMinutes(30).totalMilliseconds;
@@ -15,13 +14,10 @@ export async function pricesReady() {
 
 const updatePrices = async () => {
     console.log("updating prices...");
-    const allTrigerTickers = uniq(config.networks
-        .flatMap(x => x.notifyDenoms)
-        .map(x => x.coingeckoId)
-        .filter(x => x));
+    const allTrigerIds = await getCoingeckoIds();
 
     for (let _ of new Array(attempts)) {
-        const url = `${baseUrl}/simple/price?ids=${allTrigerTickers.join(",")}&vs_currencies=usd`;
+        const url = `${baseUrl}/simple/price?ids=${allTrigerIds.join(",")}&vs_currencies=usd`;
 
         try {
             let resp = await fetch(url);
@@ -69,16 +65,44 @@ export async function getCoingeckoIdPrice(coingeckoId: string) {
         }
     });
 
-    return result;
+    return result?.priceUsd;
 }
 
-export async function getTickerPrice(ticker: string) {
-    let notifyDenom = config.networks
-        .flatMap(x => x.notifyDenoms)
-        .find(x => x.ticker === ticker);
+export async function getPriceByIdentifier(identifier?: string) {
+    if (!identifier)
+        return;
+
+    let notifyDenom = await prisma.token.findFirst({
+        where: { identifier }
+    });
 
     if (!notifyDenom || !notifyDenom.coingeckoId)
         return;
 
-    return (await getCoingeckoIdPrice(notifyDenom.coingeckoId))?.priceUsd;
+    return await getCoingeckoIdPrice(notifyDenom.coingeckoId);
+}
+
+export async function getTickerPrice(ticker: string) {
+    let notifyDenom = await prisma.token.findFirst({
+        where: {
+            ticker,
+            AND: [
+                {
+                    coingeckoId: {
+                        not: null
+                    }
+                },
+                {
+                    coingeckoId: {
+                        not: ""
+                    }
+                }
+            ]
+        }
+    });
+
+    if (!notifyDenom || !notifyDenom.coingeckoId)
+        return;
+
+    return await getCoingeckoIdPrice(notifyDenom.coingeckoId);
 }

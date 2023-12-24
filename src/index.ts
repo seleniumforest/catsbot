@@ -3,7 +3,7 @@ import { decodeTxRaw } from "@cosmjs/proto-signing";
 import { msgHandlerMap } from "./messages";
 import { dbReady, prisma } from "./db";
 import { registry } from "./helpers";
-import { getConfig } from "./config";
+import { configReady, getNetworks } from "./config";
 import { tokenListsReady } from "./integrations/tokens";
 import { pricesReady } from "./integrations/coingecko";
 import { TimeSpan } from "timespan-ts";
@@ -53,25 +53,24 @@ async function processBlock(chain: Chain, block: IndexedBlock) {
 }
 
 (async () => {
-    await Promise.all([
-        dbReady(),
-        tokenListsReady(),
-        pricesReady()
-    ]);
+    await dbReady();
+    await tokenListsReady();
+    await configReady();
+    await pricesReady();
 
     let watcher = BlocksWatcher.create();
-    for (const network of getConfig().networks) {
+    for (const network of await getNetworks()) {
         let lastSavedBlock = await prisma.block.findUnique({
             where: {
-                network: network.name,
+                network: network,
                 time: {
                     gt: new Date(Date.now() - TimeSpan.fromMinutes(5).totalMilliseconds)
                 }
             }
         })
-        console.log(network.name, lastSavedBlock?.height);
+        console.log(network, lastSavedBlock?.height);
         watcher.useNetwork({
-            name: network.name,
+            name: network,
             dataToFetch: "INDEXED_TXS",
             lag: 5,
             fromBlock: lastSavedBlock?.height,

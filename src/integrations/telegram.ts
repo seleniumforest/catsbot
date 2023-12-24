@@ -25,20 +25,18 @@ export const notifyMsgSend = async (
     ticker: string,
     amount: Big,
     txhash: string,
-    network: string
+    network: string,
+    usdVolume?: number
 ) => {
     let sendEmoji = "💲";
-    let usdPrice = await getTickerPrice(ticker);
-    if (!usdPrice)
-        return;
 
     let finalMsg = interpolate(msgSendPattern, {
-        emoji: repeatEmoji(sendEmoji, Big(amount).mul(usdPrice).toNumber()),
+        emoji: repeatEmoji(sendEmoji, usdVolume),
         network: network,
         fromAddress: await shortAddressWithIcns(from),
         sentAmount: formatNum(amount),
         ticker,
-        usdPrice: getUsdPriceString(usdPrice, amount.toNumber()),
+        usdPrice: getUsdPriceString(usdVolume),
         toAddress: await shortAddressWithIcns(to),
         explorerUrl: getExplorerUrl(network, txhash)
     });
@@ -58,20 +56,18 @@ export const notifyMsgDelegate = async (
     ticker: string,
     amount: Big,
     txhash: string,
-    network: string
+    network: string,
+    usdVolume?: number
 ) => {
     let delegateEmoji = "🐳";
-    let usdPrice = await getTickerPrice(ticker);
-    if (!usdPrice)
-        return;
 
     const finalMsg = interpolate(msgDelegatePattern, {
-        emoji: repeatEmoji(delegateEmoji, amount.mul(usdPrice).toNumber()),
+        emoji: repeatEmoji(delegateEmoji, usdVolume),
         network: network,
         fromAddress: await shortAddressWithIcns(from),
         delegatedAmount: formatNum(amount),
         ticker,
-        usdPrice: getUsdPriceString(usdPrice, amount.toNumber()),
+        usdPrice: getUsdPriceString(usdVolume),
         toAddress: to,
         explorerUrl: getExplorerUrl(network, txhash)
     });
@@ -90,21 +86,19 @@ export const notifyMsgUndelegate = async (
     ticker: string,
     amount: Big,
     txhash: string,
-    network: string
+    network: string,
+    usdVolume?: number
 ) => {
     let undelegateEmoji = "🦐";
-    let usdPrice = await getTickerPrice(ticker);
-    if (!usdPrice)
-        return;
 
     const finalMsg = interpolate(msgUndelegatePattern, {
-        emoji: repeatEmoji(undelegateEmoji, amount.mul(usdPrice).toNumber()),
+        emoji: repeatEmoji(undelegateEmoji, usdVolume),
         network: network,
         delegator: await shortAddressWithIcns(delegator),
         undelegatedAmount: formatNum(amount),
         ticker,
         validator,
-        usdPrice: getUsdPriceString(usdPrice, amount.toNumber()),
+        usdPrice: getUsdPriceString(usdVolume),
         explorerUrl: getExplorerUrl(network, txhash)
     });
     await notify(finalMsg);
@@ -124,22 +118,20 @@ export const notifyMsgRedelegate = async (
     ticker: string,
     amount: Big,
     txhash: string,
-    network: string
+    network: string,
+    usdVolume?: number
 ) => {
     let redelegateEmoji = "♻️";
-    let usdPrice = await getTickerPrice(ticker);
-    if (!usdPrice)
-        return
 
     const finalMsg = interpolate(msgRedelegatePattern, {
-        emoji: repeatEmoji(redelegateEmoji, amount.mul(usdPrice).toNumber()),
+        emoji: repeatEmoji(redelegateEmoji, usdVolume),
         network: network,
         delegator: await shortAddressWithIcns(delegator),
         fromValidator,
         toValidator,
         redelegatedAmount: formatNum(amount),
         ticker,
-        usdPrice: getUsdPriceString(usdPrice, amount.toNumber()),
+        usdPrice: getUsdPriceString(usdVolume),
         explorerUrl: getExplorerUrl(network, txhash)
     });
 
@@ -158,20 +150,18 @@ export const notifyCw20Transfer = async (
     ticker: string,
     amount: Big,
     txhash: string,
-    network: string
+    network: string,
+    usdVolume?: number
 ) => {
     let transferEmoji = "💲";
-    let usdPrice = await getTickerPrice(ticker);
-    if (!usdPrice)
-        return;
 
     let finalMsg = interpolate(cw20TransferPattern, {
-        emoji: repeatEmoji(transferEmoji, amount.mul(usdPrice).toNumber()),
+        emoji: repeatEmoji(transferEmoji, usdVolume),
         network: network,
         sender: await shortAddressWithIcns(sender),
         sentAmount: formatNum(amount),
         ticker,
-        usdPrice: getUsdPriceString(usdPrice, amount.toNumber()),
+        usdPrice: getUsdPriceString(usdVolume),
         reciever: await shortAddressWithIcns(reciever),
         explorerUrl: getExplorerUrl(network, txhash)
     });
@@ -183,7 +173,7 @@ export const notifyCw20Transfer = async (
 const osmosisSwapPattern =
     "#osmosisswap #${network} \n" +
     "${emoji} \n" +
-    "Address ${sender} swapped ${inAmount} ${inTicker} ${inUsdPrice} tokens to ${outAmount} ${outTicker} ${outUsdPrice} \n" +
+    "Address ${sender} swapped ${inAmount} ${inTicker} tokens to ${outAmount} ${outTicker} ${outUsdPrice} \n" +
     "${explorerUrl}";
 
 export const notifyOsmosisSwap = async (
@@ -193,30 +183,20 @@ export const notifyOsmosisSwap = async (
     outAmount: Big,
     outTicker: string,
     txhash: string,
-    network: string
+    network: string,
+    usdVolume?: number
 ) => {
     let swapEmoji = "🔄";
-    let inUsdPrice = await getTickerPrice(inTicker);
-    let outUsdPrice = await getTickerPrice(outTicker);
-    if (!inUsdPrice && !outUsdPrice)
-        return;
-    let price = inUsdPrice ? inAmount.mul(inUsdPrice) : outAmount.mul(outUsdPrice!);
-
-    let inUsdPriceString = getUsdPriceString(inUsdPrice, inAmount.toNumber());
-    let outUsdPriceString = getUsdPriceString(outUsdPrice, outAmount.toNumber());
-    if (inUsdPrice && outUsdPrice)
-        inUsdPriceString = "";
 
     let finalMsg = interpolate(osmosisSwapPattern, {
-        emoji: repeatEmoji(swapEmoji, price.toNumber()),
+        emoji: repeatEmoji(swapEmoji, usdVolume),
         network: network,
         sender: await shortAddressWithIcns(sender),
         inAmount: formatNum(inAmount),
         inTicker,
-        inUsdPrice: inUsdPriceString,
         outAmount: formatNum(outAmount),
         outTicker,
-        outUsdPrice: outUsdPriceString,
+        outUsdPrice: getUsdPriceString(usdVolume),
         explorerUrl: getExplorerUrl(network, txhash)
     });
 
@@ -224,8 +204,9 @@ export const notifyOsmosisSwap = async (
 }
 
 //1 emoji for every 100k usd
-const repeatEmoji = (emoji: string, price: number) => emoji.repeat(price && price > 0 ? Math.min(Math.ceil(price / 500000), 10) : 1);
-const getUsdPriceString = (usdPrice: number | undefined, amount: number) => usdPrice ? `(USD $${formatNum(usdPrice * amount)})` : "";
+const repeatEmoji = (emoji: string, price?: number) => emoji.repeat(price && price > 0 ? Math.min(Math.ceil(price / 500000), 10) : 1);
+//const getUsdPriceString = (usdPrice: number | undefined, amount: number) => usdPrice ? `(USD $${formatNum(usdPrice * amount)})` : "";
+const getUsdPriceString = (usdVolume: number | undefined) => usdVolume ? `(USD $${formatNum(usdVolume)})` : "";
 
 const formatNum = (num: BigSource) => {
     let n = Big(num);

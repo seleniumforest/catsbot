@@ -33,6 +33,15 @@ CREATE TABLE "Price" (
     "savedDate" DATETIME NOT NULL
 );
 
+-- CreateTable
+CREATE TABLE "NotifyDenom" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "network" TEXT NOT NULL,
+    "identifier" TEXT NOT NULL,
+    "amount" TEXT NOT NULL,
+    "msg" TEXT
+);
+
 -- CreateIndex
 CREATE UNIQUE INDEX "Block_network_key" ON "Block"("network");
 
