@@ -82,6 +82,14 @@ async function populateConfigIntoDb() {
                     }
                 })
             }
+
+            await prisma.notifyDenom.create({
+                data: {
+                    network: network.name,
+                    amount: denomData.amount.toString(),
+                    identifier: denomData.identifier,
+                }
+            })
         }
     }
 }
