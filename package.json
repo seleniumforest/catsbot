@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "main": "index.js",
   "license": "MIT",
+  "scripts": {
+    "db": "npx prisma studio"
+  },
   "dependencies": {
     "@cosmjs/cosmwasm-stargate": "0.32.0",
     "@cosmjs/encoding": "^0.32.1",
