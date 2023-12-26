@@ -102,7 +102,7 @@ export async function getNotifyDenomConfig(network: string, denom: string, msgTr
         }
     });
 
-    let msgConfig = config.length === 1 ? config[0] : config.find(x => x.msg === msgTrigger);
+    let msgConfig = config.find(x => x.msg === msgTrigger) || config.find(x => x.msg === null);
     if (!msgConfig)
         return;
 
