@@ -123,7 +123,7 @@ export async function getNotifyDenomConfig(network: string, denom: string, msgTr
 }
 
 export type MsgTypes =
-    "msgSwapExactAmountIn" |
+    "msgSwapExactAmountInOut" |
     "msgDelegate" |
     "msgExecuteContract" |
     "msgSend" |

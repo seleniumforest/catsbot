@@ -96,8 +96,7 @@
         "skipLibCheck": true /* Skip type checking all .d.ts files. */
     },
     "include": [
-        "src/**/*.ts",
-        "src/messages/msgSwapExactAmountIn.ts"
+        "src/**/*.ts"
     ],
     "exclude": [
         "node_modules",

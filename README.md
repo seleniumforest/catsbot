@@ -28,14 +28,14 @@ Deployed version https://t.me/cosmos_whalecat
 
 ```
 "msgAmounts": {
-    "msgSwapExactAmountIn": 1000000000000000
+    "msgSwapExactAmountInOut": 1000000000000000
 }
 ```
         
         
 Supported msg types
 
-        - msgSwapExactAmountIn (osmosis swaps)
+        - msgSwapExactAmountInOut (osmosis swaps)
         - msgDelegate    
         - msgExecuteContract      
         - msgSend     

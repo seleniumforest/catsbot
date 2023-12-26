@@ -11,8 +11,6 @@ import { getPriceByIdentifier } from "../integrations/coingecko";
 
 export const handleMsgSwapExactAmountInOut = async (ctx: HandlerContext) => {
     let decodedMsg = ctx.decodedMsg as MsgSwapExactAmountOut;
-    if (ctx.tx.hash === "01A7ED4F6EA7B0373C1AF9B6E70B2C04AAFAE89C2F35BE828F5EF3DBB5E79A56")
-        debugger;
     let swap: TokenSwapInfo | undefined;
     if (ctx.msgType.includes("MsgSwapExactAmountIn"))
         swap = await parseSwapMsgIn(ctx);
@@ -22,8 +20,8 @@ export const handleMsgSwapExactAmountInOut = async (ctx: HandlerContext) => {
     if (!swap || swap.tokenIn.ticker === swap.tokenOut.ticker)
         return;
 
-    let inAmountConfig = await getNotifyDenomConfig(ctx.chain.chain_name, swap.tokenIn.identifier, "msgSwapExactAmountIn");
-    let outAmountConfig = await getNotifyDenomConfig(ctx.chain.chain_name, swap.tokenOut.identifier, "msgSwapExactAmountIn");
+    let inAmountConfig = await getNotifyDenomConfig(ctx.chain.chain_name, swap.tokenIn.identifier, "msgSwapExactAmountInOut");
+    let outAmountConfig = await getNotifyDenomConfig(ctx.chain.chain_name, swap.tokenOut.identifier, "msgSwapExactAmountInOut");
 
     let inUsdPriceValue = await getPriceByIdentifier(inAmountConfig?.identifier);
     let outUsdPriceValue = await getPriceByIdentifier(outAmountConfig?.identifier);
