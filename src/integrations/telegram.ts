@@ -68,7 +68,7 @@ export const notifyMsgDelegate = async (
         delegatedAmount: formatNum(amount),
         ticker,
         usdPrice: getUsdPriceString(usdVolume),
-        toAddress: to,
+        toAddress: await shortAddressWithIcns(to),
         explorerUrl: getExplorerUrl(network, txhash)
     });
     await notify(finalMsg);

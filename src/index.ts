@@ -77,7 +77,7 @@ async function processBlock(chain: Chain, block: IndexedBlock) {
             fromBlock: lastSavedBlock?.height,
             onBlockRecievedCallback: async (ctx, indexedBlock) => {
                 let block = indexedBlock as IndexedBlock;
-                console.log(`Processing ${ctx.chain.chain_name} at ${block.header.height}`);
+                console.log(`Processing ${ctx.chain.chain_name} at ${block.header.height} with ${block.txs.length} txs`);
                 try {
                     await processBlock(ctx.chain, block as IndexedBlock);
                 } catch (e) {

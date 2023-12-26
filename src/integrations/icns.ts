@@ -5,10 +5,10 @@ import { shortAddress } from "../helpers";
 
 const icnsResolverContract = "osmo1xk0s8xgktn9x5vwcgtjdxqzadg88fgn33p8u9cnpdxwemvxscvast52cdd";
 
-export const shortAddressWithIcns = async (addr: string, start = 9, end = 4) => {
+export const shortAddressWithIcns = async (addr: string, start = 9, end = 4): Promise<string> => {
     let short = shortAddress(addr, start, end);
     let icnsResult = await resolveAddressToIcns(addr);
-    if (!icnsResult)
+    if (!icnsResult || !icnsResult.primaryName || icnsResult.names.length === 0)
         return short;
 
     let prefix = fromBech32(addr).prefix;
