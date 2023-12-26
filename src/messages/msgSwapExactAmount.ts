@@ -1,4 +1,4 @@
-import { MsgSwapExactAmountIn } from "osmojs/dist/codegen/osmosis/gamm/v1beta1/tx";
+import { MsgSwapExactAmountIn, MsgSwapExactAmountOut } from "osmojs/dist/codegen/osmosis/gamm/v1beta1/tx";
 import { HandlerContext } from ".";
 import { getNotifyDenomConfig } from "../config";
 import Big from "big.js";
@@ -9,9 +9,15 @@ import { Token } from "@prisma/client";
 import { getPriceByIdentifier } from "../integrations/coingecko";
 
 
-export const handleMsgSwapExactAmountIn = async (ctx: HandlerContext) => {
-    let decodedMsg = ctx.decodedMsg as MsgSwapExactAmountIn;
-    let swap = await parseSwapMsg(ctx);
+export const handleMsgSwapExactAmountInOut = async (ctx: HandlerContext) => {
+    let decodedMsg = ctx.decodedMsg as MsgSwapExactAmountOut;
+    if (ctx.tx.hash === "01A7ED4F6EA7B0373C1AF9B6E70B2C04AAFAE89C2F35BE828F5EF3DBB5E79A56")
+        debugger;
+    let swap: TokenSwapInfo | undefined;
+    if (ctx.msgType.includes("MsgSwapExactAmountIn"))
+        swap = await parseSwapMsgIn(ctx);
+    else if (ctx.msgType.includes("MsgSwapExactAmountOut"))
+        swap = await parseSwapMsgOut(ctx);
 
     if (!swap || swap.tokenIn.ticker === swap.tokenOut.ticker)
         return;
@@ -38,7 +44,40 @@ export const handleMsgSwapExactAmountIn = async (ctx: HandlerContext) => {
         );
 }
 
-const parseSwapMsg = async (ctx: HandlerContext): Promise<TokenSwapInfo | undefined> => {
+const parseSwapMsgOut = async (ctx: HandlerContext): Promise<TokenSwapInfo | undefined> => {
+    let decodedMsg = ctx.decodedMsg as MsgSwapExactAmountOut;
+
+    let tokenSwappedFirst = ctx.tx.events
+        .filter(x => x.type === "token_swapped")
+        .find(x => x.attributes.find(y => y?.key === "pool_id")?.value.toString() === decodedMsg.routes.at(1)?.poolId.toString());
+    let tokenIn = tokenSwappedFirst?.attributes.find(x => x.key === "tokens_in")?.value;
+    if (!tokenIn)
+        return;
+
+    let tokenInMeta = await parseStringCoin(tokenIn);
+    if (!tokenInMeta)
+        return;
+
+    let tokenOutMeta = await prisma.token.findUnique({
+        where: {
+            identifier: decodedMsg.tokenOut.denom
+        }
+    });
+    if (!tokenOutMeta)
+        return;
+
+    return {
+        tokenIn: {
+            ...tokenInMeta
+        },
+        tokenOut: {
+            ...tokenOutMeta,
+            amount: decodedMsg.tokenOut.amount
+        }
+    }
+}
+
+const parseSwapMsgIn = async (ctx: HandlerContext): Promise<TokenSwapInfo | undefined> => {
     let decodedMsg = ctx.decodedMsg as MsgSwapExactAmountIn;
 
     let tokenSwappedLast = ctx.tx.events
@@ -48,7 +87,7 @@ const parseSwapMsg = async (ctx: HandlerContext): Promise<TokenSwapInfo | undefi
     if (!tokenOut)
         return;
 
-    let parsedTokenOut = await parseOutCoin(tokenOut);
+    let parsedTokenOut = await parseStringCoin(tokenOut);
     if (!parsedTokenOut)
         return;
 
@@ -71,8 +110,8 @@ const parseSwapMsg = async (ctx: HandlerContext): Promise<TokenSwapInfo | undefi
 }
 
 //splits 83927482ibc/27394FB092D2ECCD56123C74F36E4C1F926001CEADA9CA97EA622B25F41E5EB2
-//to sum and ticker
-const parseOutCoin = async (swappedCoin: string): Promise<SwappedToken | undefined> => {
+//to meta
+const parseStringCoin = async (swappedCoin: string): Promise<SwappedToken | undefined> => {
     let separatorIndex = Array.from(swappedCoin).findIndex(x => !Number.isInteger(parseInt(x)));
 
     let amount = swappedCoin.substring(0, separatorIndex);

@@ -1,6 +1,6 @@
 import { BlocksWatcher, Chain, IndexedBlock } from "cosmos-indexer";
 import { decodeTxRaw } from "@cosmjs/proto-signing";
-import { msgHandlerMap } from "./messages";
+import { MsgTypeUrl, msgHandlerMap } from "./messages";
 import { dbReady, prisma } from "./db";
 import { registry } from "./helpers";
 import { configReady, getNetworks } from "./config";
@@ -16,12 +16,13 @@ async function processBlock(chain: Chain, block: IndexedBlock) {
         let decodedTx = decodeTxRaw(tx.tx);
         for (const msg of decodedTx.body.messages) {
             let decodedMsg = registry.decode(msg);
-            let handler = msgHandlerMap.get(msg.typeUrl);
+            let typeUrl = msg.typeUrl as MsgTypeUrl;
+            let handler = msgHandlerMap.get(typeUrl);
             if (!handler)
                 continue;
 
             try {
-                await handler({ chain, tx, decodedTx, decodedMsg });
+                await handler({ chain, tx, decodedTx, decodedMsg, msgType: typeUrl });
             } catch (e) {
                 console.warn(`Error handling block ${block.header.height} on network ${chain.chain_name} with err ${e}`)
             }

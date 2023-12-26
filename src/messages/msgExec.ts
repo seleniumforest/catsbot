@@ -1,5 +1,5 @@
 import { MsgExec } from "osmojs/dist/codegen/cosmos/authz/v1beta1/tx";
-import { HandlerContext, msgHandlerMap } from ".";
+import { HandlerContext, MsgTypeUrl, msgHandlerMap } from ".";
 import { registry } from "../helpers";
 
 export const handleMsgExec = async (ctx: HandlerContext) => {
@@ -7,7 +7,7 @@ export const handleMsgExec = async (ctx: HandlerContext) => {
 
     for (const innerMsg of decodedMsgExec.msgs) {
         let decodedMsg = registry.decode(innerMsg);
-        let handler = msgHandlerMap.get(innerMsg.typeUrl);
+        let handler = msgHandlerMap.get(innerMsg.typeUrl as MsgTypeUrl);
         if (!handler)
             return;
 
