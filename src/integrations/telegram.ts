@@ -52,7 +52,7 @@ const msgDelegatePattern =
 
 export const notifyMsgDelegate = async (
     from: string,
-    to: string,
+    validatorMoniker: string,
     ticker: string,
     amount: Big,
     txhash: string,
@@ -68,7 +68,7 @@ export const notifyMsgDelegate = async (
         delegatedAmount: formatNum(amount),
         ticker,
         usdPrice: getUsdPriceString(usdVolume),
-        toAddress: await shortAddressWithIcns(to),
+        toAddress: validatorMoniker,
         explorerUrl: getExplorerUrl(network, txhash)
     });
     await notify(finalMsg);
@@ -82,7 +82,7 @@ const msgUndelegatePattern =
 
 export const notifyMsgUndelegate = async (
     delegator: string,
-    validator: string,
+    validatorMoniker: string,
     ticker: string,
     amount: Big,
     txhash: string,
@@ -97,7 +97,7 @@ export const notifyMsgUndelegate = async (
         delegator: await shortAddressWithIcns(delegator),
         undelegatedAmount: formatNum(amount),
         ticker,
-        validator,
+        validator: validatorMoniker,
         usdPrice: getUsdPriceString(usdVolume),
         explorerUrl: getExplorerUrl(network, txhash)
     });
