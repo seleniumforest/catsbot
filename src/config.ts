@@ -76,7 +76,7 @@ async function populateConfigIntoDb() {
                 await prisma.notifyDenom.create({
                     data: {
                         network: network.name,
-                        amount: msg[1].toString(),
+                        amount: (msg[1] as any).toString(),
                         identifier: denomData.identifier,
                         msg: msg[0]
                     }
