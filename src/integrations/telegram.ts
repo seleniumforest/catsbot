@@ -4,6 +4,7 @@ import { getTickerPrice } from "./coingecko";
 import { chains } from "chain-registry";
 import Big, { BigSource } from "big.js";
 import { shortAddressWithIcns } from "./icns";
+import { TimeSpan } from "timespan-ts";
 
 const config = getConfig();
 const isProdEnv = config.env === "prod";
@@ -229,10 +230,13 @@ const getExplorerUrl = (network: string, txhash: string) => {
     return `<a href='${explorer.tx_page.replace("${txHash}", txhash)}'>TX link</a>`;
 }
 
-const notify = async (message: string) => {
+const defaultRetryCounts = 3;
+const notify = async (message: string, retryCounter = 1) => {
     console.log(message);
+    if (!isProdEnv)
+        return;
 
-    if (isProdEnv)
+    try {
         await bot.telegram.sendMessage(
             config.channel,
             message,
@@ -240,6 +244,13 @@ const notify = async (message: string) => {
                 parse_mode: "HTML",
                 disable_web_page_preview: true
             });
+    } catch (e) {
+        console.warn(`Error notifyting to telegram. Error: ${JSON.stringify(e)}`);
+        if (retryCounter <= defaultRetryCounts) {
+            await new Promise(res => setTimeout(res, TimeSpan.fromMinutes(10).totalMilliseconds));
+            notify(message, retryCounter + 1);
+        }
+    }
 }
 
 const interpolate = (str: string, args: any) => {
