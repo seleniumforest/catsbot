@@ -239,6 +239,41 @@ export const notifyOsmosisJoinPool = async (
     await notify(finalMsg);
 }
 
+const exitPoolPattern =
+    "#osmosisjoin #${network} \n" +
+    "${emoji} \n" +
+    "Address ${sender} removed ${token1Amount} ${token1Ticker} and ${token2Amount} ${token2Ticker} tokens total ${usdValue} from pool №${poolId} \n" +
+    "${explorerUrl}";
+
+export const notifyOsmosisExitPool = async (
+    sender: string,
+    token1Amount: string,
+    token1Ticker: string,
+    token2Amount: string,
+    token2Ticker: string,
+    txhash: string,
+    network: string,
+    poolId: string,
+    usdValue?: number
+) => {
+    let joinEmoji = "💲";
+
+    let finalMsg = interpolate(exitPoolPattern, {
+        emoji: repeatEmoji(joinEmoji, usdValue),
+        network: network,
+        sender: await shortAddressWithIcns(sender),
+        token1Amount: formatNum(token1Amount),
+        token1Ticker,
+        token2Amount: formatNum(token2Amount),
+        token2Ticker,
+        poolId,
+        usdValue: getUsdPriceString(usdValue),
+        explorerUrl: getExplorerUrl(network, txhash)
+    });
+
+    await notify(finalMsg);
+}
+
 //1 emoji for every 100k usd
 const repeatEmoji = (emoji: string, price?: number) => emoji.repeat(price && price > 0 ? Math.min(Math.ceil(price / 500000), 10) : 1);
 //const getUsdPriceString = (usdPrice: number | undefined, amount: number) => usdPrice ? `(USD $${formatNum(usdPrice * amount)})` : "";

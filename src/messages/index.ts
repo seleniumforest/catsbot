@@ -8,7 +8,7 @@ import { handleMsgExec } from "./msgExec";
 import { handleMsgExecuteContract } from "./msgExecuteContract";
 import { handleMsgUndelegate } from "./msgUndelegate";
 import { handleMsgSwapExactAmountInOut } from "./msgSwapExactAmount";
-import { handleMsgJoinPool } from "./msgJoinPool";
+import { handleMsgJoinExitPool } from "./msgJoinExitPool";
 
 export const msgHandlerMap = new Map<string, (ctx: HandlerContext) => Promise<void>>([
     ["/cosmos.bank.v1beta1.MsgSend", handleMsgSend],
@@ -21,7 +21,8 @@ export const msgHandlerMap = new Map<string, (ctx: HandlerContext) => Promise<vo
     ["/osmosis.gamm.v1beta1.MsgSwapExactAmountOut", handleMsgSwapExactAmountInOut],
     ["/osmosis.poolmanager.v1beta1.MsgSwapExactAmountIn", handleMsgSwapExactAmountInOut],
     ["/osmosis.poolmanager.v1beta1.MsgSwapExactAmountOut", handleMsgSwapExactAmountInOut],
-    ["/osmosis.gamm.v1beta1.MsgJoinPool", handleMsgJoinPool]
+    ["/osmosis.gamm.v1beta1.MsgJoinPool", handleMsgJoinExitPool],
+    ["/osmosis.gamm.v1beta1.MsgExitPool", handleMsgJoinExitPool]
 ]);
 
 export type MsgTypeUrl =
@@ -35,7 +36,8 @@ export type MsgTypeUrl =
     "/osmosis.gamm.v1beta1.MsgSwapExactAmountOut" |
     "/osmosis.poolmanager.v1beta1.MsgSwapExactAmountIn" |
     "/osmosis.poolmanager.v1beta1.MsgSwapExactAmountOut" |
-    "/osmosis.gamm.v1beta1.MsgJoinPool";
+    "/osmosis.gamm.v1beta1.MsgJoinPool" |
+    "/osmosis.gamm.v1beta1.MsgExitPool";
 
 export type HandlerContext = {
     chain: Chain,
