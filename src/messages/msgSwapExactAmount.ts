@@ -3,10 +3,11 @@ import { HandlerContext } from ".";
 import { getNotifyDenomConfig } from "../config";
 import Big from "big.js";
 import { notifyOsmosisSwap } from "../integrations/telegram";
-import { fromBaseUnit } from "../helpers";
+import { fromBaseUnit, parseStringCoin } from "../helpers";
 import { prisma } from "../db";
 import { Token } from "@prisma/client";
 import { getPriceByIdentifier } from "../integrations/coingecko";
+import { TokenSwapInfo } from "../types";
 
 
 export const handleMsgSwapExactAmountInOut = async (ctx: HandlerContext) => {
@@ -105,33 +106,4 @@ const parseSwapMsgIn = async (ctx: HandlerContext): Promise<TokenSwapInfo | unde
         },
         tokenOut: { ...parsedTokenOut }
     }
-}
-
-//splits 83927482ibc/27394FB092D2ECCD56123C74F36E4C1F926001CEADA9CA97EA622B25F41E5EB2
-//to meta
-const parseStringCoin = async (swappedCoin: string): Promise<SwappedToken | undefined> => {
-    let separatorIndex = Array.from(swappedCoin).findIndex(x => !Number.isInteger(parseInt(x)));
-
-    let amount = swappedCoin.substring(0, separatorIndex);
-    let denom = swappedCoin.substring(separatorIndex, swappedCoin.length);
-    let infoResult = await prisma.token.findUnique({
-        where: {
-            network: "osmosis",
-            identifier: denom
-        }
-    });
-    if (!infoResult)
-        return;
-
-    return {
-        amount,
-        ...infoResult
-    }
-}
-
-type SwappedToken = Token & { amount: string };
-
-type TokenSwapInfo = {
-    tokenIn: SwappedToken,
-    tokenOut: SwappedToken
 }

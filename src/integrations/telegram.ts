@@ -204,14 +204,54 @@ export const notifyOsmosisSwap = async (
     await notify(finalMsg);
 }
 
+const joinPoolPattern =
+    "#osmosisjoin #${network} \n" +
+    "${emoji} \n" +
+    "Address ${sender} added ${token1Amount} ${token1Ticker} and ${token2Amount} ${token2Ticker} tokens total ${usdValue} to pool №${poolId} \n" +
+    "${explorerUrl}";
+
+export const notifyOsmosisJoinPool = async (
+    sender: string,
+    token1Amount: string,
+    token1Ticker: string,
+    token2Amount: string,
+    token2Ticker: string,
+    txhash: string,
+    network: string,
+    poolId: string,
+    usdValue?: number
+) => {
+    let joinEmoji = "💲";
+
+    let finalMsg = interpolate(joinPoolPattern, {
+        emoji: repeatEmoji(joinEmoji, usdValue),
+        network: network,
+        sender: await shortAddressWithIcns(sender),
+        token1Amount: formatNum(token1Amount),
+        token1Ticker,
+        token2Amount: formatNum(token2Amount),
+        token2Ticker,
+        poolId,
+        usdValue: getUsdPriceString(usdValue),
+        explorerUrl: getExplorerUrl(network, txhash)
+    });
+
+    await notify(finalMsg);
+}
+
 //1 emoji for every 100k usd
 const repeatEmoji = (emoji: string, price?: number) => emoji.repeat(price && price > 0 ? Math.min(Math.ceil(price / 500000), 10) : 1);
 //const getUsdPriceString = (usdPrice: number | undefined, amount: number) => usdPrice ? `(USD $${formatNum(usdPrice * amount)})` : "";
 const getUsdPriceString = (usdVolume: number | undefined) => usdVolume ? `(USD $${formatNum(usdVolume)})` : "";
 
 const formatNum = (num: BigSource) => {
-    let n = Big(num);
-    return new Intl.NumberFormat().format(Number(n.toFixed(n.lt(1) ? 2 : 0)));
+    try {
+        let n = Big(num);
+        return new Intl.NumberFormat().format(Number(n.toFixed(n.lt(1) ? 2 : 0)));
+    } catch (e) {
+        console.warn(`cannot format number ${num}`);
+        return "";
+    }
 }
 
 const getExplorerUrl = (network: string, txhash: string) => {
@@ -258,5 +298,5 @@ const interpolate = (str: string, args: any) => {
         str = str.replaceAll("${" + arg + "}", args[arg])
     });
 
-    return str.replace("  ", " ");
+    return str.replace(/  +/g, ' ');
 }

@@ -3,6 +3,7 @@ import cfg from "../config.json";
 import { prisma } from "./db";
 import * as fs from 'fs';
 import * as _ from "lodash";
+import { MsgTypes } from "./types";
 
 export async function configReady() {
     const denomsCount = await prisma.notifyDenom.count();
@@ -94,7 +95,10 @@ async function populateConfigIntoDb() {
     }
 }
 
-export async function getNotifyDenomConfig(network: string, denom: string, msgTrigger: MsgTypes) {
+export async function getNotifyDenomConfig(network: string, denom: string | undefined, msgTrigger: MsgTypes) {
+    if (!denom)
+        return;
+
     let config = await prisma.notifyDenom.findMany({
         where: {
             network,
@@ -121,12 +125,3 @@ export async function getNotifyDenomConfig(network: string, denom: string, msgTr
         decimals: tokenInfo.decimals
     }
 }
-
-export type MsgTypes =
-    "msgSwapExactAmountInOut" |
-    "msgDelegate" |
-    "msgExecuteContract" |
-    "msgSend" |
-    "msgUndelegate" |
-    "msgBeginRedelegate" |
-    "msgSifchainSwap";
