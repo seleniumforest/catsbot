@@ -53,7 +53,7 @@ export const handleMsgJoinExitPool = async (ctx: HandlerContext) => {
         usdValue = token1Value.plus(token2Value).toNumber();
     }
 
-    notifierFunc(
+    await notifierFunc(
         sender,
         fromBaseUnit(token1?.amount || 0, token1?.decimals).toFixed() || "",
         token1?.ticker || shortAddress(token1?.identifier || "") || "",

@@ -31,7 +31,7 @@ export const handleMsgSwapExactAmountInOut = async (ctx: HandlerContext) => {
 
     if (inAmountConfig && Big(swap.tokenIn.amount).gte(Big(inAmountConfig.thresholdAmount)) ||
         outAmountConfig && Big(swap.tokenOut.amount).gte(Big(outAmountConfig.thresholdAmount)))
-        notifyOsmosisSwap(
+        await notifyOsmosisSwap(
             decodedMsg.sender,
             fromBaseUnit(swap.tokenIn.amount, swap.tokenIn.decimals),
             swap.tokenIn.ticker,

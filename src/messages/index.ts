@@ -9,6 +9,8 @@ import { handleMsgExecuteContract } from "./msgExecuteContract";
 import { handleMsgUndelegate } from "./msgUndelegate";
 import { handleMsgSwapExactAmountInOut } from "./msgSwapExactAmount";
 import { handleMsgJoinExitPool } from "./msgJoinExitPool";
+import { msgWithdrawPosition } from "./msgWithdrawPosition";
+import { msgCreatePosition } from "./msgCreatePosition";
 
 export const msgHandlerMap = new Map<string, (ctx: HandlerContext) => Promise<void>>([
     ["/cosmos.bank.v1beta1.MsgSend", handleMsgSend],
@@ -22,7 +24,9 @@ export const msgHandlerMap = new Map<string, (ctx: HandlerContext) => Promise<vo
     ["/osmosis.poolmanager.v1beta1.MsgSwapExactAmountIn", handleMsgSwapExactAmountInOut],
     ["/osmosis.poolmanager.v1beta1.MsgSwapExactAmountOut", handleMsgSwapExactAmountInOut],
     ["/osmosis.gamm.v1beta1.MsgJoinPool", handleMsgJoinExitPool],
-    ["/osmosis.gamm.v1beta1.MsgExitPool", handleMsgJoinExitPool]
+    ["/osmosis.gamm.v1beta1.MsgExitPool", handleMsgJoinExitPool],
+    ["/osmosis.concentratedliquidity.v1beta1.MsgCreatePosition", msgCreatePosition],
+    ["/osmosis.concentratedliquidity.v1beta1.MsgWithdrawPosition", msgWithdrawPosition]
 ]);
 
 export type MsgTypeUrl =
@@ -37,12 +41,16 @@ export type MsgTypeUrl =
     "/osmosis.poolmanager.v1beta1.MsgSwapExactAmountIn" |
     "/osmosis.poolmanager.v1beta1.MsgSwapExactAmountOut" |
     "/osmosis.gamm.v1beta1.MsgJoinPool" |
-    "/osmosis.gamm.v1beta1.MsgExitPool";
+    "/osmosis.gamm.v1beta1.MsgExitPool" |
+    "/osmosis.concentratedliquidity.v1beta1.MsgCreatePosition" |
+    "/osmosis.concentratedliquidity.v1beta1.MsgWithdrawPosition";
 
 export type HandlerContext = {
     chain: Chain,
     tx: IndexedTx,
     decodedTx: DecodedTxRaw,
     decodedMsg: any,
-    msgType: MsgTypeUrl
+    msgType: MsgTypeUrl,
+    msgIndex: number,
+    isAuthzTx?: boolean
 }

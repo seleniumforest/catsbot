@@ -207,7 +207,7 @@ export const notifyOsmosisSwap = async (
 const joinPoolPattern =
     "#osmosisjoin #${network} \n" +
     "${emoji} \n" +
-    "Address ${sender} added ${token1Amount} ${token1Ticker} and ${token2Amount} ${token2Ticker} tokens total ${usdValue} to pool №${poolId} \n" +
+    "Address ${sender} added ${token1Amount} ${token1Ticker} and ${token2Amount} ${token2Ticker} tokens ${usdValue} to pool №${poolId} \n" +
     "${explorerUrl}";
 
 export const notifyOsmosisJoinPool = async (
@@ -219,7 +219,8 @@ export const notifyOsmosisJoinPool = async (
     txhash: string,
     network: string,
     poolId: string,
-    usdValue?: number
+    usdValue?: number,
+    ranged?: boolean
 ) => {
     let joinEmoji = "💲";
 
@@ -232,6 +233,7 @@ export const notifyOsmosisJoinPool = async (
         token2Amount: formatNum(token2Amount),
         token2Ticker,
         poolId,
+        ranged: ranged ? "ranged" : "",
         usdValue: getUsdPriceString(usdValue),
         explorerUrl: getExplorerUrl(network, txhash)
     });
@@ -240,9 +242,9 @@ export const notifyOsmosisJoinPool = async (
 }
 
 const exitPoolPattern =
-    "#osmosisjoin #${network} \n" +
+    "#osmosisexit #${network} \n" +
     "${emoji} \n" +
-    "Address ${sender} removed ${token1Amount} ${token1Ticker} and ${token2Amount} ${token2Ticker} tokens total ${usdValue} from pool №${poolId} \n" +
+    "Address ${sender} removed ${token1Amount} ${token1Ticker} and ${token2Amount} ${token2Ticker} tokens ${usdValue} from ${ranged} pool №${poolId} \n" +
     "${explorerUrl}";
 
 export const notifyOsmosisExitPool = async (
@@ -254,7 +256,8 @@ export const notifyOsmosisExitPool = async (
     txhash: string,
     network: string,
     poolId: string,
-    usdValue?: number
+    usdValue?: number,
+    ranged?: boolean
 ) => {
     let joinEmoji = "💲";
 
@@ -266,6 +269,69 @@ export const notifyOsmosisExitPool = async (
         token1Ticker,
         token2Amount: formatNum(token2Amount),
         token2Ticker,
+        poolId,
+        ranged: ranged ? "ranged" : "",
+        usdValue: getUsdPriceString(usdValue),
+        explorerUrl: getExplorerUrl(network, txhash)
+    });
+
+    await notify(finalMsg);
+}
+
+const joinOneSidePoolPattern =
+    "#osmosisjoin #oneside #${network} \n" +
+    "${emoji} \n" +
+    "Address ${sender} added ${tokenAmount} ${tokenTicker} tokens ${usdValue} to ranged pool №${poolId} \n" +
+    "${explorerUrl}";
+
+export const notifyOsmosisJoinPoolOneSide = async (
+    sender: string,
+    tokenAmount: string,
+    tokenTicker: string,
+    txhash: string,
+    network: string,
+    poolId: string,
+    usdValue?: number
+) => {
+    let joinEmoji = "💲";
+
+    let finalMsg = interpolate(joinOneSidePoolPattern, {
+        emoji: repeatEmoji(joinEmoji, usdValue),
+        network: network,
+        sender: await shortAddressWithIcns(sender),
+        tokenAmount: formatNum(tokenAmount),
+        tokenTicker,
+        poolId,
+        usdValue: getUsdPriceString(usdValue),
+        explorerUrl: getExplorerUrl(network, txhash)
+    });
+
+    await notify(finalMsg);
+}
+
+const exitOneSidePoolPattern =
+    "#osmosisexit #${network} \n" +
+    "${emoji} \n" +
+    "Address ${sender} removed ${tokenAmount} ${tokenTicker} tokens ${usdValue} from ranged pool №${poolId} \n" +
+    "${explorerUrl}";
+
+export const notifyOsmosisExitPoolOneSide = async (
+    sender: string,
+    tokenAmount: string,
+    tokenTicker: string,
+    txhash: string,
+    network: string,
+    poolId: string,
+    usdValue?: number
+) => {
+    let joinEmoji = "💲";
+
+    let finalMsg = interpolate(exitOneSidePoolPattern, {
+        emoji: repeatEmoji(joinEmoji, usdValue),
+        network: network,
+        sender: await shortAddressWithIcns(sender),
+        tokenAmount: formatNum(tokenAmount),
+        tokenTicker,
         poolId,
         usdValue: getUsdPriceString(usdValue),
         explorerUrl: getExplorerUrl(network, txhash)

@@ -13,6 +13,8 @@ export const fromBaseUnit = (amount: BigSource, decimals = 6) => {
 export const shortAddress = (addr: string, start = 9, end = 4) =>
     `${addr.slice(0, start)}...${addr.slice(addr.length - end, addr.length)}`;
 
+export const isContractAddress = (addr?: string) => addr && addr.length === 63 ? true : false;
+
 export const registry = new Registry([
     ...wasmTypes,
     ...defaultRegistryTypes,

@@ -9,7 +9,9 @@ export type MsgTypes =
     "msgBeginRedelegate" |
     "msgSifchainSwap" |
     "msgJoinPool" |
-    "msgExitPool";
+    "msgExitPool" |
+    "msgCreatePosition" |
+    "msgWithdrawPosition";
 
 
 export type CoinWithMetadata = Token & { amount: string };

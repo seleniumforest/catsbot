@@ -5,12 +5,13 @@ import { registry } from "../helpers";
 export const handleMsgExec = async (ctx: HandlerContext) => {
     let decodedMsgExec = ctx.decodedMsg as MsgExec
 
-    for (const innerMsg of decodedMsgExec.msgs) {
+    await Promise.allSettled(decodedMsgExec.msgs.map(async (innerMsg, index) => {
         let decodedMsg = registry.decode(innerMsg);
-        let handler = msgHandlerMap.get(innerMsg.typeUrl as MsgTypeUrl);
+        let msgTypeUrl = innerMsg.typeUrl as MsgTypeUrl;
+        let handler = msgHandlerMap.get(msgTypeUrl);
         if (!handler)
             return;
 
-        await handler({ ...ctx, decodedMsg })
-    }
+        await handler({ ...ctx, decodedMsg, msgType: msgTypeUrl, msgIndex: index, isAuthzTx: true });
+    }));
 };
