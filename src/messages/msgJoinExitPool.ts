@@ -4,25 +4,20 @@ import { notifyOsmosisExitPool, notifyOsmosisJoinPool } from "../integrations/te
 import { fromBaseUnit, parseStringCoin, shortAddress } from "../helpers";
 import { getPriceByIdentifier } from "../integrations/coingecko";
 import { MsgTypes } from "../types";
+import Big from "big.js";
 
 export const handleMsgJoinExitPool = async (ctx: HandlerContext) => {
-    let msgType: MsgTypes | undefined;
-    let tokensEventKey = "";
-    let eventKey = "";
-    let notifierFunc;
-    if (ctx.msgType === "/osmosis.gamm.v1beta1.MsgJoinPool") {
-        msgType = "msgJoinPool";
-        tokensEventKey = "tokens_in";
-        eventKey = "pool_joined";
-        notifierFunc = notifyOsmosisJoinPool;
-    }
-    else if (ctx.msgType === "/osmosis.gamm.v1beta1.MsgExitPool") {
+    let msgType: MsgTypes | undefined = "msgJoinPool";
+    let tokensEventKey = "tokens_in";
+    let eventKey = "pool_joined";
+    let notifierFunc = notifyOsmosisJoinPool;
+    if (ctx.msgType === "/osmosis.gamm.v1beta1.MsgExitPool") {
         msgType = "msgExitPool";
         tokensEventKey = "tokens_out";
         eventKey = "pool_exited";
         notifierFunc = notifyOsmosisExitPool
     }
-    else
+    else if (ctx.msgType !== "/osmosis.gamm.v1beta1.MsgJoinPool")
         return;
 
     let event = ctx.tx.events.find(x => x.type === eventKey);
@@ -41,8 +36,13 @@ export const handleMsgJoinExitPool = async (ctx: HandlerContext) => {
     if (!token1Config && !token2Config)
         return;
 
-    let token1Price = await getPriceByIdentifier(token1Config?.identifier);
-    let token2Price = await getPriceByIdentifier(token2Config?.identifier);
+    let matchByToken1 = token1Config?.thresholdAmount && token1?.amount && Big(token1.amount).gt(token1Config.thresholdAmount);
+    let matchByToken2 = token2Config?.thresholdAmount && token2?.amount && Big(token2.amount).gt(token2Config.thresholdAmount);
+    if (!matchByToken1 && !matchByToken2)
+        return;
+
+    let token1Price = await getPriceByIdentifier(token1?.identifier);
+    let token2Price = await getPriceByIdentifier(token2?.identifier);
     let token1Value = fromBaseUnit(token1?.amount || 0, token1?.decimals).mul(token1Price || 0);
     let token2Value = fromBaseUnit(token2?.amount || 0, token2?.decimals).mul(token2Price || 0);
     let usdValue: number | undefined;

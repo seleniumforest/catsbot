@@ -58,16 +58,26 @@ export const msgWithdrawPosition = async (ctx: HandlerContext) => {
         return;
 
     let [token1, token2] = await Promise.all(transferEventValue.split(",").map(x => parseStringCoin(x, true)));
-    let token1Config = await getNotifyDenomConfig(ctx.chain.chain_name, token1?.identifier, "msgCreatePosition");
-    let token2Config = await getNotifyDenomConfig(ctx.chain.chain_name, token2?.identifier, "msgCreatePosition");
+    let token1Config = await getNotifyDenomConfig(ctx.chain.chain_name, token1?.identifier, "msgWithdrawPosition");
+    let token2Config = await getNotifyDenomConfig(ctx.chain.chain_name, token2?.identifier, "msgWithdrawPosition");
     if (!token1Config && !token2Config)
         return;
 
-    let token1Price = await getPriceByIdentifier(token1Config?.identifier);
-    let token2Price = await getPriceByIdentifier(token2Config?.identifier);
+    let matchByToken1 = token1Config?.thresholdAmount && token1?.amount && Big(token1.amount).gt(token1Config.thresholdAmount);
+    let matchByToken2 = token2Config?.thresholdAmount && token2?.amount && Big(token2.amount).gt(token2Config.thresholdAmount);
+    if (!matchByToken1 && !matchByToken2)
+        return;
+
+    let token1Price = await getPriceByIdentifier(token1?.identifier);
+    let token2Price = await getPriceByIdentifier(token2?.identifier);
     let token1Value = fromBaseUnit(token1?.amount || 0, token1?.decimals).mul(token1Price || 0);
     let token2Value = fromBaseUnit(token2?.amount || 0, token2?.decimals).mul(token2Price || 0);
-    let usdValue = token1Price && token2Price ? token1Value.plus(token2Value).toNumber() : undefined;
+    let usdValue: number | undefined;
+    if (oneSidePosition)
+        usdValue = (token1Price ? token1Value : token2Value).toNumber();
+    else
+        usdValue = token1Price && token2Price ? token1Value.plus(token2Value).toNumber() : undefined
+
 
     if (oneSidePosition) {
         return await notifyOsmosisExitPoolOneSide(

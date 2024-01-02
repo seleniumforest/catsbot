@@ -27,6 +27,11 @@ const updatePrices = async () => {
             let json = await resp.json() as any;
             console.log(json);
             for (const key of Object.keys(json)) {
+                if (!json[key]?.["usd"]) {
+                    console.warn(`cannot get price for ${key}`);
+                    continue;
+                }
+
                 await prisma.price.upsert({
                     where: {
                         coingeckoId: key

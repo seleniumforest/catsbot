@@ -41,7 +41,7 @@ export async function getCoingeckoIds() {
         .map(x => tokens.find(t => t.identifier === x.identifier)?.coingeckoId)
         .filter(x => x);
 
-    return [...new Set(result)];
+    return [...new Set([...result, ...tokens.filter(x => x.network === "osmosis").map(x => x && x.coingeckoId)])];
 }
 
 export async function getNotifyDenomsWithMeta() {
