@@ -14,19 +14,19 @@ async function processBlock(chain: Chain, block: IndexedBlock) {
             return;
 
         let decodedTx = decodeTxRaw(tx.tx);
-        for (const msg of decodedTx.body.messages) {
+        await Promise.allSettled(decodedTx.body.messages.map(async (msg, index) => {
             let decodedMsg = registry.decode(msg);
             let typeUrl = msg.typeUrl as MsgTypeUrl;
             let handler = msgHandlerMap.get(typeUrl);
             if (!handler)
-                continue;
+                return;
 
             try {
-                await handler({ chain, tx, decodedTx, decodedMsg, msgType: typeUrl });
+                await handler({ chain, tx, decodedTx, decodedMsg, msgType: typeUrl, msgIndex: index });
             } catch (e) {
                 console.warn(`Error handling block ${block.header.height} on network ${chain.chain_name} with err ${e}`)
             }
-        }
+        }));
 
         await prisma.block.upsert({
             where: {
