@@ -207,7 +207,7 @@ export const notifyOsmosisSwap = async (
 const joinPoolPattern =
     "#osmosisjoin #${network} \n" +
     "${emoji} \n" +
-    "Address ${sender} added ${token1Amount} ${token1Ticker} and ${token2Amount} ${token2Ticker} tokens ${usdValue} to pool №${poolId} \n" +
+    "Address ${sender} added ${token1Amount} ${token1Ticker} and ${token2Amount} ${token2Ticker} tokens ${usdValue} to ${ranged} pool №${poolId} \n" +
     "${explorerUrl}";
 
 export const notifyOsmosisJoinPool = async (
