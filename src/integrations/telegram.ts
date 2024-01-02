@@ -279,7 +279,7 @@ export const notifyOsmosisExitPool = async (
 }
 
 const joinOneSidePoolPattern =
-    "#osmosisjoin #oneside #${network} \n" +
+    "#osmosisjoin #${network} \n" +
     "${emoji} \n" +
     "Address ${sender} added ${tokenAmount} ${tokenTicker} tokens ${usdValue} to ranged pool №${poolId} \n" +
     "${explorerUrl}";

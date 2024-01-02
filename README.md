@@ -4,15 +4,7 @@ Cosmos cats community https://t.me/cosmoscats
 
 Deployed version https://t.me/cosmos_whalecat
 
-## Run script
-
-0. Run 
-    
-    ```sh 
-    sudo apt install  
-    yarn install 
-    npx prisma migrate dev
-    ``` 
+## Run bot
 
 1. Rename config.example.json to config.json and 
     - specify env to "prod"
@@ -20,7 +12,7 @@ Deployed version https://t.me/cosmos_whalecat
     - @channel to send notifications
     - set env to "test" if you don't want to send notifications to telegram. Useful on switching environments.
 
-1.1 - Config: you can assign custom amount for each denom by adding, also you can add any network presented in chain-registry 
+1.1 - Config: you can assign custom amount for each denom by adding, also you can add any network presented in chain-registry. It will populated into db ONLY if notifydenom table is empty
 
 ```
 "msgAmounts": {
@@ -38,7 +30,7 @@ Deployed version https://t.me/cosmos_whalecat
 
 **msg** is a trigger name (see below). If it's null, it means that amount relates to all other msg types.
 
-Example: that means you assign 5 osmo for all actions, but you want to see delegates > 2 osmo and undelegates > 1 osmo
+Example: that means you assign 5 osmo for all actions, but you want to see delegates > 1 osmo and undelegates > 2 osmo
 
     osmosis | uosmo | 1000000 | msgDelegate
 
@@ -54,7 +46,19 @@ Supported msg types
         - msgSend     
         - msgUndelegate
         - msgBeginRedelegate
+        - msgJoinPool (osmosis add to pool)
+        - msgExitPool (osmosis remove from pool)
+        - msgCreatePosition (osmosis add to ranged pool)
+        - msgWithdrawPosition (osmosis remove from ranged pool)
  
-2. Run ```tsc && pm2 start ecosystem.config.js ``` to run bot and studio. 
+2. To run bot and studio
+    
+    ```sh 
+    sudo apt install sqlite3
+    yarn install 
+    tsc
+    npx prisma migrate dev
+    pm2 start ecosystem.config.js
+    ``` 
 
     - Or you can run it with `ts-node src/index`. To run studio use `npx prisma studio`
